@@ -36,7 +36,7 @@ function RegisterPage() {
     if (!form.password) newErrors.password = 'Password is required';
     if (!form.email) newErrors.email = 'Email is required';
     if (!form.phone) newErrors.phone = 'Phone number is required';
-    if (isOrganizer && !form.gender) newErrors.gender = 'Gender is required for users';
+    if (!isOrganizer && !form.gender) newErrors.gender = 'Gender is required for users';
     return newErrors;
   };
 
@@ -47,7 +47,11 @@ function RegisterPage() {
       setErrors(validationErrors);
     } else {
       // Save user data to profile (you might want to use a state management solution or context)
-      navigate('/question');
+      if(!isOrganizer){
+        navigate('/question');
+      } else {
+        navigate('/');
+      }
     }
   };
 
@@ -56,7 +60,8 @@ function RegisterPage() {
       <TopNav />
       <div className='flex items-center justify-center items-center'>
         <div className="items-left bg-white shadow-md rounded-lg p-8 max-w-md my-9 w-4/5">
-          <h2 className="text-3xl font-bold text-center mb-10">Register</h2>
+          <h2 className="text-3xl font-bold text-center mb-0">Register</h2>
+          <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700"></hr>
           <form onSubmit={handleSubmit} >
             {/* Registration Form */}
             <div className="form-group">
@@ -95,7 +100,7 @@ function RegisterPage() {
               />
               {errors.phone && <span className="error">{errors.phone}</span>}
             </div>
-            {isOrganizer && (
+            {!isOrganizer && (
               <div className="form-group">
                 <label htmlFor="gender" className="block text-gray-700 font-bold mb-2">Gender</label>
                 <select

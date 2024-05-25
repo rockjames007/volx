@@ -31,7 +31,8 @@ const QuestionsPage = () => {
       <div className='flex items-center justify-center items-center'>
       <div className="items-center bg-white shadow-md rounded-lg p-8 max-w-lg my-9 w-screen">
         <form>
-        <h1 className="text-3xl font-bold text-center mb-10">Interest Level</h1>
+        <h1 className="text-3xl font-bold text-center mb-0">Interest Level</h1>
+        <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700"></hr>
         <div className="flex flex-col space-y-4">
           <div className="flex items-center">
             <label htmlFor="environment" className="mr-4">What is your interest Level for Environment & Sustainability?</label>

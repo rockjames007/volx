@@ -90,6 +90,7 @@ const CreateEventPage = () => {
               <button onClick={handleUploadButtonClick} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-0 ">Upload Image</button>
             </div>
           </div>
+          <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700"></hr>
           <form onSubmit={handleSubmit}>
           <div className="mb-4">
               <div className="relative bg-gray-300 rounded w-full h-80 flex items-center justify-center mb-4 overflow-hidden">
