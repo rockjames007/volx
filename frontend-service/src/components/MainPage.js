@@ -17,10 +17,10 @@ const MainPage = () => {
   };
   
   return (
-    <div className="bg-purple-500 h-5 min-h-screen flex flex-col">
+    <div className="bg-blue-500 h-5 min-h-screen flex flex-col">
       <TopNav />
-      <div className="content">
-        <div className="bg-transparent rounded-lg p-1 mt-9 mx-auto w-2/3 main-card h-full max-h-400">
+      <div className="content h-full ">
+        <div className="bg-transparent rounded-lg p-1 mt-9 mx-auto w-2/3 main-card h-3/6">
         <h2 className="text-3xl font-bold mb-3 header">Be a volunteer</h2>
         <form class="max-w-md ">   
             <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
@@ -35,14 +35,18 @@ const MainPage = () => {
             </div>
         </form>
         </div>
-        <div className="bg-transparent rounded-lg p-8 mt-8 mx-auto w-2/3 event-main-card">
+        <div className="bg-transparent p-8 mt-8 mx-auto w-2/3 event-main-card">
             {/* First row of cards */}
             <div className="flex justify-between mb-8 space-x-4">
               {Array.from({ length: 3 }).map((_, index) => (
                 <div key={index} className="blue-card">
-                  <div className="rounded-lg shadow-md p-4 flex flex-col items-center justify-center bg-blue-200 mb-4">
-                    <img src={`https://source.unsplash.com/random/250x250?sig=${index}`} alt="Image" className="max-w-md h-24 mb-2" />
-                    <div className="text-center">Description Text</div>
+                  <div className="shadow-md p-4 flex flex-col items-center justify-center bg-white mb-4">
+                    <img src={`https://source.unsplash.com/random/250x250?sig=${index}`} alt="Image" className="w-full h-24  object-cover" />
+                    <div className='bg-white w-full h-30'>
+                    <div className="text-left">Name</div>
+                    <div className="text-left">Date</div>
+                    <div className="text-left">Location</div>
+                    </div>
                   </div>
                 </div>
               ))}
