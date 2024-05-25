@@ -176,7 +176,7 @@ const CreateEventPage = () => {
                 ))}
               </div>
             </div>
-            <div className="mb-4">
+            <div className="mb-4 flex items-end justify-end">
               <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Submit</button>
             </div>
           </form>
