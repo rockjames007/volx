@@ -77,8 +77,8 @@ const CreateEventPage = () => {
       <TopNav />
       <div className="flex items-center justify-center">
         <div className="bg-white shadow-md rounded-lg p-8 my-9  w-full max-w-4xl">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-3xl font-bold header mb-0">Create Event</h2>
+          <div className="flex justify-between items-end mb-4">
+            <h2 className="text-3xl font-bold header mb-0 mb-4">Create Event</h2>
             <div>
               <input
                 type="file"
@@ -91,11 +91,19 @@ const CreateEventPage = () => {
             </div>
           </div>
           <form onSubmit={handleSubmit}>
-            {uploadedImage && (
-              <div className="mb-4">
-                <img src={URL.createObjectURL(uploadedImage)} alt="Uploaded" className="max-w-full h-auto" />
+          <div className="mb-4">
+              <div className="relative bg-gray-300 rounded w-full h-80 flex items-center justify-center mb-4 overflow-hidden">
+                {uploadedImage ? (
+                  <img
+                    src={URL.createObjectURL(uploadedImage)}
+                    alt="Uploaded"
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <span className="text-gray-500">Image Preview</span>
+                )}
               </div>
-            )}
+            </div>
             <div className="form-group">
               <label className="block text-gray-700 font-bold mb-2" htmlFor="eventName">Event Name</label>
               <input
