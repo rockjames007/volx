@@ -1,0 +1,58 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+  }
+  
+  .nav-links {
+    display: flex;
+    align-items: center;
+  }
+  
+  .nav-links a {
+    margin-right: 1rem;
+    color: #8A2BE2;
+  }
+  
+  .nav-links a:hover {
+    text-decoration: underline;
+  }
+  
+  .nav-links a:last-child {
+    margin-right: 0;
+  }
+  
+  .logo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #8A2BE2;
+  }
+  
+  .content {
+    margin-top: 1rem;
+  }
+  
+  .purple-card {
+    background-color: #31708E; 
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .purple-card input[type="text"] {
+    margin-top: 1rem;
+  }
+  
+  .blue-card {
+    flex: 1;
+  }
+  
+  .blue-card .rounded-lg {
+    background-color: #add8e6; /* Light Blue */
+    margin-bottom: 1rem;
+  }
+  
+  .blue-card:last-child .rounded-lg {
+    margin-bottom: 0;
+  }
