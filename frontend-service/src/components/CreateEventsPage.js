@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
-import TopNav from './TopNav';
+import TopNav from '../TopNav';
 import '../App.css';
 
 const CreateEventPage = () => {
@@ -74,7 +74,6 @@ const CreateEventPage = () => {
 
   return (
     <div className="bg-blue-500 max-h-fit min-h-screen flex flex-col">
-      <TopNav />
       <div className="flex items-center justify-center">
         <div className="bg-white shadow-md rounded-lg p-8 my-9  w-full max-w-4xl">
           <div className="flex justify-between items-end mb-4">

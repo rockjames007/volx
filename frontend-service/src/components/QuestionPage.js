@@ -1,16 +1,10 @@
-import React, { useState } from 'react';
 import './QuestionPage.css';
-import TopNav from './TopNav';
+import TopNav from '../TopNav';
+import { useRecoilState } from 'recoil';
+import { interestLevel } from '../state/recoilstate';
 
 const QuestionsPage = () => {
-  const [interestLevels, setInterestLevels] = useState({
-    environment: 0,
-    health: 0,
-    mentalHealth: 0,
-    animalWelfare: 0,
-    education: 0,
-    socialServices: 0,
-  });
+  const [interestLevels, setInterestLevels] = useRecoilState(interestLevel);
 
   const handleInterestChange = (category, value) => {
     setInterestLevels(prevState => ({
@@ -19,15 +13,8 @@ const QuestionsPage = () => {
     }));
   };
 
-  const [wantToVolunteer, setWantToVolunteer] = useState(true);
-
-  const handleVolunteerChange = (e) => {
-    setWantToVolunteer(e.target.checked);
-  };
-
   return (
     <div className="bg-blue-500 max-h-fit min-h-screen flex flex-col">
-      <TopNav />
       <div className='flex items-center justify-center items-center'>
       <div className="items-center bg-white shadow-md rounded-lg p-8 max-w-lg my-9 w-screen">
         <form>
@@ -151,27 +138,6 @@ const QuestionsPage = () => {
               {level}
               </label>
             ))}
-          </div>
-        </div>
-        <div className="mt-8">
-          <label htmlFor="volunteer" className="mr-4">Do you want to also be a volunteer? (Organizers will send invitation based on Interest Level)</label>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="volunteer"
-              name="volunteer"
-              checked={wantToVolunteer}
-              onChange={handleVolunteerChange}
-            />
-            <label htmlFor="volunteer" className="ml-2">Yes</label>
-            <input
-              type="checkbox"
-              id="noVolunteer"
-              name="noVolunteer"
-              checked={!wantToVolunteer}
-              onChange={() => setWantToVolunteer(false)}
-            />
-            <label htmlFor="noVolunteer" className="ml-2">No</label>
           </div>
         </div>
         <div className="form-group my-2">
