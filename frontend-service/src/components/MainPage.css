@@ -27,3 +27,7 @@
   .blue-card:last-child .rounded-lg {
     margin-bottom: 0;
   }
+
+  .event-main-card {
+    color: white;
+  }
