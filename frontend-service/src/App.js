@@ -6,6 +6,7 @@ import MainPage from './components/MainPage';
 import QuestionPage from './components/QuestionPage';
 import CreateEventsPage from './components/CreateEventsPage';
 import ProfilePage from './components/ProfilePage';
+<<<<<<< Updated upstream
 import TopNav from './TopNav';
 function App() {
   return (
@@ -22,6 +23,22 @@ function App() {
         </Routes>
       </Router>
     </>
+=======
+import EnterVolunteersPage from './components/EnterVolunteersPage.js';
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/question" element={<QuestionPage />} />
+        <Route path="/events" element={<CreateEventsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/enterVolunteersPage" element={<EnterVolunteersPage/>} />
+      </Routes>
+    </Router>
+>>>>>>> Stashed changes
   );
 }
 

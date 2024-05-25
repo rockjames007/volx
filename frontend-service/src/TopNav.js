@@ -14,7 +14,7 @@ const TopNav = () => {
         <a href="/login">Login</a>
         <a href="/profile">Profile</a>
       </div>
-    </nav>
+    </nav>  
   );
 };
 
