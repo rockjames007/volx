@@ -6,7 +6,7 @@ const MainPage = () => {
   const navigate = useNavigate();
 
   const handleRegister = () => {
-    navigate('/register');
+    navigate('/enterVolunteerPage');
   };
 
   const handleLogin = (e) => {
