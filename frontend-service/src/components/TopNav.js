@@ -12,7 +12,7 @@ const TopNav = () => {
         <a href="/home">Home</a>
         <a href="/events">Find/Create Events</a>
         <a href="/login">Login</a>
-        <a href="/signup">Sign Up</a>
+        <a href="/register">Register</a>
       </div>
     </nav></div>
   );
