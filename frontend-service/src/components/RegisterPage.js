@@ -44,7 +44,7 @@ function RegisterPage() {
     <div className="bg-blue-500 max-h-fit min-h-screen flex flex-col">
     <TopNav />
     <div className='flex items-center justify-center items-center'>
-    <div className="items-center bg-white shadow-md rounded-lg p-8 max-w-md my-9 w-4/5">
+    <div className="items-left bg-white shadow-md rounded-lg p-8 max-w-md my-9 w-4/5">
       <h2 className="text-3xl font-bold text-center mb-10">Register</h2>
         <form onSubmit={handleSubmit} >
           <div className="form-group">
@@ -100,7 +100,7 @@ function RegisterPage() {
             {errors.gender && <span className="error">{errors.gender}</span>}
           </div>
           <div className="form-group">
-            <button type="submit" className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:bg-blue-500 hover:bg-blue-500">Submit</button>
+            <button type="submit" className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md focus:bg-green-700 hover:bg-green-700">Submit</button>
           </div>
         </form>
       </div>

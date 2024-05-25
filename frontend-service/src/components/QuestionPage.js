@@ -174,7 +174,7 @@ const QuestionsPage = () => {
           </div>
         </div>
         <div className="form-group my-2">
-            <button type="submit" className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:bg-blue-500 hover:bg-blue-500">Submit</button>
+            <button type="submit" className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:bg-green-700 hover:bg-green-700">Submit</button>
         </div>
         </form>
       </div>

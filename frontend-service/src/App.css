@@ -1,10 +1,22 @@
-.bg-blue-500 {
+.bg-blue-600 {
     background-color: #31708E; 
   }
 
-.bg-blue-400 {
+.bg-blue-500 {
     background-color: #5085A5; 
+  }
+
+.bg-blue-400 {
+    background-color: #8FC1E3; 
     }
+
+.bg-green-400 {
+    background-color: #687864; 
+}
+
+.bg-green-500 {
+    background-color: #687864; 
+}
 
 .text-3xl {
     color: #31708E; 

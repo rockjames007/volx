@@ -9,12 +9,9 @@
 
   .header {
     margin-top: 5%;
+    color: #31708E; 
   }
 
-  .content {
-    background-color: #31708E; 
-  }
-  
   .main-card input[type="text"] {
     margin-top: 1rem;
   }

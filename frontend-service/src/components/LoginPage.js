@@ -29,10 +29,10 @@ const LoginPage = () => {
               <label htmlFor="password" className="block text-gray-700 font-bold mb-2">Password</label>
               <input type="password" id="password" name="password" className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-blue-500" />
             </div>
-            <button type="submit" className="w-full bg-blue-400 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:bg-blue-500 hover:bg-blue-500">Log In</button>
+            <button type="submit" className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:bg-green-700 hover:bg-green-700">Log In</button>
           </form>
           <div className="text-sm mt-4">
-            Don't have an account? <button onClick={handleRegister} className="bg-blue-400 text-white-500 hover:outline-none focus:outline-none hover:bg-blue-500">Register</button>
+            Don't have an account? <button onClick={handleRegister} className="bg-green-600 text-white-500 hover:outline-none focus:outline-none hover:bg-green-700">Register</button>
           </div>
         </div>
       </div>
