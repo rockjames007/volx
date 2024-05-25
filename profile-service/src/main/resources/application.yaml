@@ -3,6 +3,17 @@ server:
 spring:
   application:
     name: profile-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/volx
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 eureka:
   client:
     serviceUrl:
