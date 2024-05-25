@@ -5,10 +5,10 @@ import './RegisterPage.css';
 function RegisterPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    id: '',
     password: '',
     email: '',
     phone: '',
+    gender: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -20,10 +20,10 @@ function RegisterPage() {
 
   const validate = () => {
     const newErrors = {};
-    if (!form.id) newErrors.id = 'ID is required';
     if (!form.password) newErrors.password = 'Password is required';
     if (!form.email) newErrors.email = 'Email is required';
     if (!form.phone) newErrors.phone = 'Phone number is required';
+    if (!form.gender) newErrors.gender = 'Gender is required';
     return newErrors;
   };
 
@@ -39,31 +39,9 @@ function RegisterPage() {
   };
 
   return (
-    <div className="register-container">
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="id">ID:</label>
-          <input
-            type="text"
-            name="id"
-            value={form.id}
-            onChange={handleChange}
-            required
-          />
-          {errors.id && <span className="error">{errors.id}</span>}
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-          {errors.password && <span className="error">{errors.password}</span>}
-        </div>
-        <div>
+    <div className="flex justify-center items-center h-screen">
+      <form onSubmit={handleSubmit} className="form-container">
+        < div className="form-group">
           <label htmlFor="email">Email:</label>
           <input
             type="email"
@@ -71,10 +49,23 @@ function RegisterPage() {
             value={form.email}
             onChange={handleChange}
             required
+            className="input-field"
           />
           {errors.email && <span className="error">{errors.email}</span>}
         </div>
-        <div>
+        <div className="form-group">
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            className="input-field"
+          />
+          {errors.password && <span className="error">{errors.password}</span>}
+        </div>
+        <div className="form-group">
           <label htmlFor="phone">Phone:</label>
           <input
             type="tel"
@@ -82,10 +73,29 @@ function RegisterPage() {
             value={form.phone}
             onChange={handleChange}
             required
+            className="input-field"
           />
           {errors.phone && <span className="error">{errors.phone}</span>}
         </div>
-        <button type="submit">Submit</button>
+        <div className="form-group">
+          <label htmlFor="gender">Gender:</label>
+          <select
+            name="gender"
+            value={form.gender}
+            onChange={handleChange}
+            required
+            className="input-field"
+          >
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          {errors.gender && <span className="error">{errors.gender}</span>}
+        </div>
+        <div className="form-group">
+          <button type="submit" className="submit-button">Submit</button>
+        </div>
       </form>
     </div>
   );
