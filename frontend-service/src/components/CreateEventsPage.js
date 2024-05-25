@@ -77,7 +77,7 @@ const CreateEventPage = () => {
       <div className="flex items-center justify-center">
         <div className="bg-white shadow-md rounded-lg p-8 my-9  w-full max-w-4xl">
           <div className="flex justify-between items-end mb-4">
-            <h2 className="text-3xl font-bold header mb-0 mb-4">Create Event</h2>
+            <h2 className="text-3xl font-bold header mb-4">Create Event</h2>
             <div>
               <input
                 type="file"

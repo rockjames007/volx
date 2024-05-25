@@ -1,5 +1,4 @@
 import './QuestionPage.css';
-import TopNav from '../TopNav';
 import { useRecoilState } from 'recoil';
 import { interestLevel } from '../state/recoilstate';
 

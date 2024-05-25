@@ -10,6 +10,11 @@ export const userState = atom({
     }
 });
 
+export const eventIdState = atom({
+    key: 'eventIdState',
+    default: 0
+});
+
 export const interestLevel = atom({
     key: 'interestLevel',
     default: {

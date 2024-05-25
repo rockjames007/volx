@@ -9,7 +9,6 @@ const TopNav = () => {
         <a href="/">VolX</a>
       </div>
       <div className="nav-links">
-        <a href="/">Events</a>
         <a href="/events">Create Events</a>
         <a href="/login">Login</a>
         <a href="/profile">Profile</a>

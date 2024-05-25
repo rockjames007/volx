@@ -1,9 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MainPage.css';
+import { eventIdState } from '../state/recoilstate';
+import { useRecoilState } from 'recoil';
 import { mainEvents } from "../data/event-mainpage";
 const MainPage = () => {
   const navigate = useNavigate();
+  const [eventId, setEventId] = useRecoilState(eventIdState);
 
   const handleRegister = () => {
     navigate('/enterVolunteerPage');
@@ -37,8 +40,11 @@ const MainPage = () => {
           Interested in volunteering? Join us in making a difference! Help us create a positive impact and be part of something meaningful. Explore our volunteering opportunities and get involved today!</p>
         <div className="grid grid-cols-3 gap-4 mb-8">
           {mainEvents.map((data, index) => (
-            <div key={index} className="blue-card transform transition duration-500 ease-in-out hover:scale-105 hover:shadow-lg mb-4">
-              <div className="shadow-md p-4 flex flex-col items-center justify-center bg-white mb-0">
+            <div key={index} className="blue-card transform transition duration-500 ease-in-out hover:scale-105 hover:shadow-lg" onClick={() => {
+              setEventId(data.eventId);
+              navigate("/event");
+            }}>
+              <div className="shadow-md p-4 flex flex-col items-center justify-center bg-white mb-4">
                 <img src={data.imageUrl} alt="Image" className="w-full h-24  object-cover" />
                 <div className='bg-white w-full h-30'>
                   <div className="text-left text-black font-bold overflow-hidden overflow-ellipsis whitespace-nowrap">{data.eventName}</div>
