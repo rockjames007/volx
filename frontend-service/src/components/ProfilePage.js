@@ -53,14 +53,31 @@ function ProfilePage() {
   };
   const generateRandomDate = () => {
     const startDate = new Date();
-    const endDate = new Date(startDate.getTime() + Math.random() * 86400000 * 30); 
+    const endDate = new Date(startDate.getTime() + Math.random() * 86400000 * 30);
     return { startDate, endDate };
   };
-  
+
   const generateRandomStatus = () => {
     const statuses = ['Not Started', 'In Progress', 'Completed'];
     return statuses[Math.floor(Math.random() * statuses.length)];
   };
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredEvents = Array.from({ length: 9 })
+    .map((_, index) => {
+      const { startDate, endDate } = generateRandomDate();
+      const status = generateRandomStatus();
+      const location = `Location ${index + 1}`;
+      return {
+        name: `Event ${index + 1}`,
+        startDate,
+        endDate,
+        status,
+        location
+      };
+    })
+    .filter(event =>
+      event.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   let content;
   if (activeTab === "Leaderboard") {
@@ -88,13 +105,22 @@ function ProfilePage() {
       </div>
     );
   } else if (activeTab === "View Events") {
+
     content = (
       <div className='items-left bg-white shadow-md rounded-lg p-8 my-9 w-2/3'>
         <div className="greeting-container text-left mt-4">
           <h2 className="text-3xl font-semibold">Events</h2>
           <hr className="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700" />
         </div>
-        <div className="users-list mt-4">
+        <div className="users-list mt-4 "> <div className="search-container my-3">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search Events..."
+              className="px-3 py-1 border border-gray-300 rounded-md"
+            />
+          </div>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -107,50 +133,45 @@ function ProfilePage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {Array.from({ length: 9 }).map((_, index) => {
-                const { startDate, endDate } = generateRandomDate();
-                const status = generateRandomStatus();
-                const location = `Location ${index + 1}`;
-                return (
-                  <tr key={index} className={`${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <img src={`https://source.unsplash.com/random/250x250?sig=${index}`} alt="User" className="w-10 h-10 rounded-full" />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">Event {index + 1}</div>
-                        </div>
+              {filteredEvents.map((event, index) => (
+                <tr key={index} className={`${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        <img src={`https://source.unsplash.com/random/250x250?sig=${index}`} alt="User" className="w-10 h-10 rounded-full" />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{startDate.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{endDate.toLocaleString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{status}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{location}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <button className="auto-match-button bg-green-600 hover:bg-green-600 text-white font-semibold py-2 px-4 ml-2 rounded-md">
-                            Auto-match
-                        </button>
-                      {status === 'Not Started' && (
-                        <button className="remove-button bg-red-600 hover:bg-red-600 text-white font-semibold py-2 px-4 ml-2 rounded-md">
-                          Remove
-                        </button>
-                      )}
-                      {status === 'Completed' && (
-                        <button className="feedback-button bg-blue-600 hover:bg-blue-600 text-white font-semibold py-2 px-4 ml-2 rounded-md">
-                          Feedback
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{event.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{event.startDate.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{event.endDate.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{event.status}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{event.location}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <button className="auto-match-button bg-green-600 hover:bg-green-600 text-white font-semibold py-2 px-4 ml-2 rounded-md">
+                      Auto-match
+                    </button>
+                    {event.status === 'Not Started' && (
+                      <button className="remove-button bg-red-600 hover:bg-red-600 text-white font-semibold py-2 px-4 ml-2 rounded-md">
+                        Remove
+                      </button>
+                    )}
+                    {event.status === 'Completed' && (
+                      <button className="feedback-button bg-blue-600 hover:bg-blue-600 text-white font-semibold py-2 px-4 ml-2 rounded-md">
+                        Feedback
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </div>
     );
-    
+
 
   } else if (activeTab === "Rewards") {
     content = (

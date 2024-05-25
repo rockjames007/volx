@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import './MainPage.css';
 import '../index.js';
 import TopNav from './TopNav';
@@ -15,6 +14,27 @@ const MainPage = () => {
     e.preventDefault();
     navigate('/main');
   };
+
+  const getRandomEventName = () => {
+    const prefixes = ['Annual', 'Community', 'Charity', 'Local', 'Global', 'Environmental', 'Social', 'Cultural', 'Educational', 'Health'];
+    const suffixes = ['Run', 'Festival', 'Drive', 'Event', 'Campaign', 'Project', 'Initiative', 'Exhibition', 'Seminar', 'Workshop'];
+    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+    return `${randomPrefix} ${randomSuffix}`;
+  };
+
+  const getRandomDate = () => {
+    const startDate = new Date(2024, 5, 25);
+    const endDate = new Date();
+    const randomDate = new Date(startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime()));
+    return randomDate.toDateString();
+  };
+
+  const getRandomLocation = () => {
+    const locations = ['New York', 'London', 'Paris', 'Tokyo', 'Sydney'];
+    return locations[Math.floor(Math.random() * locations.length)];
+  };
+
 
   return (
     <div className="bg-blue-500 min-h-screen flex flex-col">
@@ -44,9 +64,9 @@ const MainPage = () => {
                 <div className="shadow-md p-4 flex flex-col items-center justify-center bg-white mb-4">
                   <img src={`https://source.unsplash.com/random/250x250?sig=${index}`} alt="Image" className="w-full h-24  object-cover" />
                   <div className='bg-white w-full h-30'>
-                    <div className="text-left text-black">Name</div>
-                    <div className="text-left text-black">Date</div>
-                    <div className="text-left text-black">Location</div>
+                  <div className="text-left text-black font-bold">{getRandomEventName()}</div>
+                  <div className="text-left text-black">{getRandomDate()}</div>
+                    <div className="text-left text-black">{getRandomLocation()}</div>
                   </div>
                 </div>
               </div>
