@@ -19,8 +19,8 @@ const MainPage = () => {
   return (
     <div className="bg-blue-500 min-h-screen flex flex-col">
       <TopNav />
-      <div className="bg-transparent rounded-lg p-1 mt-9 mx-auto w-2/3 main-card h-5/6 pb-24"  style={{ backgroundImage: "url('https://i.pinimg.com/originals/54/2a/d4/542ad4e7c504b61fcaf8e7c59637a790.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
-          <h2 className="text-3xl font-bold mb-3 header text-black">Be a volunteer</h2>
+      <div className="bg-transparent rounded-lg p-1 mt-9 mx-auto w-2/3 main-card h-5/6 pb-24"  style={{ backgroundImage: "linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://i.pinimg.com/originals/54/2a/d4/542ad4e7c504b61fcaf8e7c59637a790.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
+        <h2 className="text-3xl font-bold mb-3 header" style={{color:'#F7F9FB'}}>Be a volunteer</h2>
           <form class="max-w-md ">
             <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
             <div class="relative">
