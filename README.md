@@ -35,10 +35,6 @@ To get started with Volx, follow these steps:
 3. **Run the Development Server:** `npm start`
 4. **Access the Application:** Open your browser and navigate to `http://localhost:3000`
 
-Contributing
-------------
-
-We welcome contributions from the community! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
 
 License
 -------
