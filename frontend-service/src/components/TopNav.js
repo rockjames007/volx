@@ -1,9 +1,9 @@
 import React from 'react';
 import './TopNav.css';
+import '../index.js'; 
 
 const TopNav = () => {
   return (
-    <div className="min-h-screen">
     <nav className="topnav">
       <div className="logo">
         <a href="/">Volx</a>
@@ -14,7 +14,7 @@ const TopNav = () => {
         <a href="/login">Login</a>
         <a href="/register">Register</a>
       </div>
-    </nav></div>
+    </nav>
   );
 };
 
