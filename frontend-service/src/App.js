@@ -5,6 +5,7 @@ import RegisterPage from './components/RegisterPage';
 import MainPage from './components/MainPage';
 import QuestionPage from './components/QuestionPage';
 import CreateEventsPage from './components/CreateEventsPage';
+import ProfilePage from './components/ProfilePage';
 function App() {
   return (
     <Router>
@@ -14,6 +15,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/question" element={<QuestionPage />} />
         <Route path="/events" element={<CreateEventsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   );

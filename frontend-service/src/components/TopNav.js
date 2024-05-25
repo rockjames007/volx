@@ -13,6 +13,7 @@ const TopNav = () => {
         <a href="/events">Create Events</a>
         <a href="/login">Login</a>
         <a href="/register">Register</a>
+        <a href="/profile">Profile</a>
       </div>
     </nav>
   );

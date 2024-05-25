@@ -1,0 +1,58 @@
+.view-profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .profile-picture-container {
+    text-align: center;
+  }
+  
+  .profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+  }
+  
+  .default-profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 2px dashed #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    color: #888;
+  }
+  
+  .greeting-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .tabs-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .tab {
+    margin-right: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .automatch-button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
