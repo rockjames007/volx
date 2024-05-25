@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,8 @@ import '../App.css';
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   const [eventData, setEventData] = useState({
     eventName: '',
@@ -53,11 +55,21 @@ const CreateEventPage = () => {
     });
   };
 
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    setUploadedImage(file);
+    // Handle file upload logic here
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission, e.g., send data to backend
     console.log(eventData);
-    navigate('/'); // Navigate to home page after submission
+    navigate('/');
+  };
+
+  const handleUploadButtonClick = () => {
+    fileInputRef.current.click();
   };
 
   return (
@@ -68,11 +80,22 @@ const CreateEventPage = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-3xl font-bold header mb-0">Create Event</h2>
             <div>
-              {/* Add upload image circle component here */}
-              <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-0 ">Upload Image</button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileInputChange}
+                accept="image/*"
+              />
+              <button onClick={handleUploadButtonClick} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-0 ">Upload Image</button>
             </div>
           </div>
           <form onSubmit={handleSubmit}>
+            {uploadedImage && (
+              <div className="mb-4">
+                <img src={URL.createObjectURL(uploadedImage)} alt="Uploaded" className="max-w-full h-auto" />
+              </div>
+            )}
             <div className="form-group">
               <label className="block text-gray-700 font-bold mb-2" htmlFor="eventName">Event Name</label>
               <input
