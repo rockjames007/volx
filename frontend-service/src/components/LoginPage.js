@@ -18,7 +18,7 @@ const LoginPage = () => {
     <div className="bg-blue-500 h-5 min-h-screen flex flex-col ">
       <TopNav />
       <div className='flex items-center justify-center items-center'>
-        <div className="items-center bg-white shadow-md rounded-lg p-8 max-w-md my-9">
+        <div className="items-center bg-white shadow-md rounded-lg p-8 max-w-md my-9 w-4/5">
           <h2 className="text-3xl font-bold text-center mb-10">Log In</h2>
           <form onSubmit={handleLogin}>
             <div className="mb-4">
