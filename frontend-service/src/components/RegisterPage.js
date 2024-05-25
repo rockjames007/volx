@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './RegisterPage.css';
-import TopNav from './TopNav';
 import '../App.css';
+import { useRecoilState } from 'recoil';
+import { userState } from '../state/recoilstate';
 
 function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    password: '',
-    email: '',
-    phone: '',
-    gender: '',
-  });
+  const [form, setForm] = useRecoilState(userState);
 
   const [errors, setErrors] = useState({});
   const [isOrganizer, setIsOrganizer] = useState(false); // State to manage organizer checkbox
@@ -57,7 +53,6 @@ function RegisterPage() {
 
   return (
     <div className="bg-blue-500 max-h-fit min-h-screen flex flex-col">
-      <TopNav />
       <div className='flex items-center justify-center items-center'>
         <div className="items-left bg-white shadow-md rounded-lg p-8 max-w-md my-9 w-4/5">
           <h2 className="text-3xl font-bold text-center mb-0">Register</h2>

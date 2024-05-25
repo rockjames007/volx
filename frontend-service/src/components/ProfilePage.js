@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ProfilePage.css';
-import TopNav from './TopNav';
 
 function ProfilePage() {
   const [profilePicture, setProfilePicture] = useState(null);
-  const [memberSinceDate, setMemberSinceDate] = useState("");
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [requiredVolunteers, setRequiredVolunteers] = useState(0);
   const fileInputRef = useRef(null);
@@ -204,7 +202,6 @@ function ProfilePage() {
 
   return (
     <div className="profile-container bg-blue-500 min-h-screen max-h-fit min-h-screen flex flex-col">
-      <TopNav />
       <div className='flex items-center justify-center items-center'>
         <div className='items-left bg-white shadow-md rounded-lg p-8 my-9 w-2/3'>
           <div className="profile-picture-container flex justify-center items-center mt-8">
