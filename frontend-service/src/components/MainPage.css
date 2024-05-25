@@ -1,46 +1,21 @@
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-  }
   
-  .nav-links {
-    display: flex;
-    align-items: center;
+
+  .bg-purple-500 { 
+    background-color: #31708E;  
   }
-  
-  .nav-links a {
-    margin-right: 1rem;
-    color: #8A2BE2;
-  }
-  
-  .nav-links a:hover {
-    text-decoration: underline;
-  }
-  
-  .nav-links a:last-child {
-    margin-right: 0;
-  }
-  
-  .logo {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #8A2BE2;
-  }
-  
+
   .content {
-    margin-top: 1rem;
+    padding: 2.5rem;
   }
   
-  .purple-card {
-    background-color: #31708E; 
+  .main-card {
+    background-color: #F7F9FB; 
     padding: 1.5rem;
     border-radius: 0.5rem;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   }
   
-  .purple-card input[type="text"] {
+  .main-card input[type="text"] {
     margin-top: 1rem;
   }
   
