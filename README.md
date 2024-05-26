@@ -35,6 +35,18 @@ To get started with Volx, follow these steps:
 3. **Run the Development Server:** `npm start`
 4. **Access the Application:** Open your browser and navigate to `http://localhost:3000`
 
+   
+Testing Instructions
+---------------
+**Test Data for Login**
+
+Organization:
+org@gmail.com org123
+
+Volunteer:
+test@gmail.com test123
+
+**Demo Test Link:** https://rockjames007.github.io/volx/ 
 
 License
 -------
