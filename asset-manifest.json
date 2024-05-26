@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/volx/static/css/main.745c1875.css",
-    "main.js": "/volx/static/js/main.170dc191.js",
+    "main.js": "/volx/static/js/main.5e53a57c.js",
     "static/js/453.5565870f.chunk.js": "/volx/static/js/453.5565870f.chunk.js",
     "index.html": "/volx/index.html",
     "main.745c1875.css.map": "/volx/static/css/main.745c1875.css.map",
-    "main.170dc191.js.map": "/volx/static/js/main.170dc191.js.map",
+    "main.5e53a57c.js.map": "/volx/static/js/main.5e53a57c.js.map",
     "453.5565870f.chunk.js.map": "/volx/static/js/453.5565870f.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.745c1875.css",
-    "static/js/main.170dc191.js"
+    "static/js/main.5e53a57c.js"
   ]
 }
