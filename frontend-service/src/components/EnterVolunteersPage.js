@@ -74,77 +74,79 @@ function EnterVolunteersPage() {
     };
 
     return (
-        <div className="flex justify-between">
-            {/* Left Side: Enter Required Volunteers */}
-            <div className="flex flex-col w-1/2 p-4 border-r border-gray-300">
-                <h2 className="mb-4">Enter Required Volunteers</h2>
-                <input
-                    type="number"
-                    value={requiredVolunteers}
-                    onChange={(e) => setRequiredVolunteers(parseInt(e.target.value))}
-                    className="mb-2"
-                />
-                <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="mb-2"
-                >
-                    <option value="">Select Category</option>
-                    {categories.map((category, index) => (
-                        <option key={index} value={category}>{category}</option>
-                    ))}
-                </select>
-                <button onClick={handleAutomatchVolunteers} className="bg-blue-500 text-white py-2 px-4 rounded-md">
-                    Automatch Volunteers
-                </button>
-            </div>
-            {/* Right Side: Database of Selected Volunteers */}
-            <div className="flex flex-col w-1/2 p-4">
-                <h2 className="mb-4">Database of Selected Volunteers</h2>
-                <table className="w-full">
-                    <thead>
-                        <tr>
-                            <th className="border px-4 py-2">Name</th>
-                            <th className="border px-4 py-2">Category</th>
-                            <th className="border px-4 py-2">Interest Level</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {selectedVolunteers.map((volunteer, index) => (
-                            <tr key={index}>
-                                <td className="border px-4 py-2">{volunteer.name}</td>
-                                <td className="border px-4 py-2">{volunteer.category}</td>
-                                <td className="border px-4 py-2">{volunteer.interestLevel}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <div className="flex flex-col w-1/2 p-4">
-                <h2 className="mb-4">Automatch Sponsors</h2>
-                <button onClick={handleAutomatchSponsors} className="bg-blue-500 text-white py-2 px-4 rounded-md">
-                    Automatch Sponsors
-                </button>
-            </div>
-            {/* Database of Selected Sponsors */}
-            <div className="flex flex-col w-1/2 p-4">
-                <h2 className="mb-4">Database of Selected Sponsors</h2>
-                <table className="w-full">
-                    <thead>
-                        <tr>
-                            <th className="border px-4 py-2">Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {selectedSponsors.map((sponsor, index) => (
-                            <tr key={index}>
-                                <td className="border px-4 py-2">{sponsor.name}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <div className="bg-blue-500 max-h-fit min-h-screen flex flex-col"> <div className='flex items-center justify-center'>
+            <div className='items-center bg-white shadow-md rounded-lg p-8 my-9 w-2/3'>
+                <div className="flex justify-between">
+                    {/* Left Side: Enter Required Volunteers */}
+                    <div className="flex flex-col w-1/2 p-4 border-r border-gray-300">
+                        <h2 className="block text-gray-700 font-bold mb-4">Enter Required Volunteers</h2>
+                        <input
+                            type="number"
+                            value={requiredVolunteers}
+                            onChange={(e) => setRequiredVolunteers(parseInt(e.target.value))}
+                            className="mb-2 p-2 border border-gray-300 rounded"
+                        />
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="mb-2 p-2 border border-gray-300 rounded"
+                        >
+                            <option value="">Select Category</option>
+                            {categories.map((category, index) => (
+                                <option key={index} value={category}>{category}</option>
+                            ))}
+                        </select>
+                        <button onClick={handleAutomatchVolunteers} className="block text-gray-700 font-bold bg-green-600 text-white py-2 px-4 rounded-md">
+                            Automatch Volunteers
+                        </button>
+                    </div>
+                    {/* Right Side: Database of Selected Volunteers */}
+                    <div className="flex flex-col w-1/2 p-4">
+                        <h2 className="block text-gray-700 font-bold mb-4">Database of Selected Volunteers</h2>
+                        <table className="w-full">
+                            <thead>
+                                <tr>
+                                    <th className="border px-4 py-2">Name</th>
+                                    <th className="border px-4 py-2">Category</th>
+                                    <th className="border px-4 py-2">Interest Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedVolunteers.map((volunteer, index) => (
+                                    <tr key={index}>
+                                        <td className="border px-4 py-2">{volunteer.name}</td>
+                                        <td className="border px-4 py-2">{volunteer.category}</td>
+                                        <td className="border px-4 py-2">{volunteer.interestLevel}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="flex flex-col w-1/2 p-4">
+                        <h2 className="block text-gray-700 font-bold mb-4">Automatch Sponsors</h2>
+                        <button onClick={handleAutomatchSponsors} className="block text-gray-700 font-bold bg-green-600 text-white py-2 px-4 rounded-md">
+                            Automatch Sponsors
+                        </button>
+                    </div>
+                    {/* Database of Selected Sponsors */}
+                    <div className="flex flex-col w-1/2 p-4">
+                        <h2 className="block text-gray-700 font-bold mb-4">Database of Selected Sponsors</h2>
+                        <table className="w-full">
+                            <thead>
+                                <tr>
+                                    <th className="border px-4 py-2">Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedSponsors.map((sponsor, index) => (
+                                    <tr key={index}>
+                                        <td className="border px-4 py-2">{sponsor.name}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div></div></div></div>
     )
 }
 export default EnterVolunteersPage;

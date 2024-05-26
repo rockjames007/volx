@@ -23,7 +23,7 @@ function ProfilePage() {
     
     
     const handleAutomatchVolunteers = () => {
-        navigate('/EnterVolunteerPage');
+        navigate('/enterVolunteersPage');
       };
 
     const messages = [
