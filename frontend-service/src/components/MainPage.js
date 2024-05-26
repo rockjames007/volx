@@ -33,12 +33,6 @@ const MainPage = () => {
             <button type="submit" class="text-white absolute end-2.5 bottom-1.5 bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-green-700 dark:hover:bg-green-700">Search</button>
           </div>
         </form>
-        <div className="w-full max-w-xs mx-auto">
-  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date-filter">
-    Select a date:
-  </label>
-  <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="date-filter" type="date" />
-</div>
       </div>
       <div className="bg-transparent p-8 mt-8 mx-auto w-2/3 event-main-card">
         <h2 className="text-3xl font-bold text-center mb-4 text-white" style={{ color: 'white' }}>Highlighted Events</h2>
@@ -47,7 +41,7 @@ const MainPage = () => {
         <div className="grid grid-cols-3 gap-4 mb-8">
           {eventCategories.map((data, index) => (
             <div key={index} className="blue-card transform transition duration-500 ease-in-out hover:scale-105 hover:shadow-lg" onClick={() => {
-              setEventId(data.eventId);
+              setEventId(data.category);
               navigate("/event");
             }}>
               <div className="shadow-md p-4 flex flex-col items-center justify-center bg-white mb-4">

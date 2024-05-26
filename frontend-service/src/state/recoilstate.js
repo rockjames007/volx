@@ -1,6 +1,6 @@
 import { atom } from "recoil";
 import { personalisedEvents } from '../data/personalised';
-import { requestEvents } from '../data/request';
+import { requestEvents,attendedEvents } from '../data/request';
 export const userState = atom({
     key: 'user',
     default: {
@@ -15,7 +15,7 @@ export const userState = atom({
 
 export const eventIdState = atom({
     key: 'eventIdState',
-    default: 0
+    default: ""
 });
 
 export const interestLevel = atom({
@@ -31,4 +31,9 @@ export const personalisedState = atom({
 export const requestedState = atom({
     key: 'requested',
     default: requestEvents
+});
+
+export const attendedState = atom({
+    key: 'requested',
+    default: attendedEvents
 });
