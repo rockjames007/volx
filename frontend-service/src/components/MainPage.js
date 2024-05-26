@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './MainPage.css';
 import { eventIdState } from '../state/recoilstate';
 import { useRecoilState } from 'recoil';
-import { mainEvents } from "../data/event-mainpage";
+import { eventCategories } from "../data/event-mainpage";
 const MainPage = () => {
   const navigate = useNavigate();
   const [eventId, setEventId] = useRecoilState(eventIdState);
@@ -33,13 +33,19 @@ const MainPage = () => {
             <button type="submit" class="text-white absolute end-2.5 bottom-1.5 bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-green-700 dark:hover:bg-green-700">Search</button>
           </div>
         </form>
+        <div className="w-full max-w-xs mx-auto">
+  <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date-filter">
+    Select a date:
+  </label>
+  <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="date-filter" type="date" />
+</div>
       </div>
       <div className="bg-transparent p-8 mt-8 mx-auto w-2/3 event-main-card">
         <h2 className="text-3xl font-bold text-center mb-4 text-white" style={{ color: 'white' }}>Highlighted Events</h2>
         <p class="mb-10 text-lg font-normal text-gray-500 dark:text-gray-400 lg:text-center lg:text-xl lg:px-64 lg:mb-16" style={{ color: '#E0E0E0' }}>
           Interested in volunteering? Join us in making a difference! Help us create a positive impact and be part of something meaningful. Explore our volunteering opportunities and get involved today!</p>
         <div className="grid grid-cols-3 gap-4 mb-8">
-          {mainEvents.map((data, index) => (
+          {eventCategories.map((data, index) => (
             <div key={index} className="blue-card transform transition duration-500 ease-in-out hover:scale-105 hover:shadow-lg" onClick={() => {
               setEventId(data.eventId);
               navigate("/event");
@@ -47,9 +53,7 @@ const MainPage = () => {
               <div className="shadow-md p-4 flex flex-col items-center justify-center bg-white mb-4">
                 <img src={data.imageUrl} alt="Image" className="w-full h-24  object-cover" />
                 <div className='bg-white w-full h-30'>
-                  <div className="text-left text-black font-bold overflow-hidden overflow-ellipsis whitespace-nowrap">{data.eventName}</div>
-                  <div className="text-left text-black">{data.date}</div>
-                  <div className="text-left text-black overflow-hidden overflow-ellipsis whitespace-nowrap">{data.location}</div>
+                  <div className="text-left text-black font-bold overflow-hidden overflow-ellipsis whitespace-nowrap">{data.category}</div>
                 </div>
               </div>
             </div>

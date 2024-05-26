@@ -8,6 +8,7 @@ import CreateEventsPage from './components/CreateEventsPage';
 import ProfilePage from './components/ProfilePage';
 import EventPage from './components/EventPage';
 import EnterVolunteersPage from './components/EnterVolunteersPage';
+import VolunteerEvents from './components/VolunteerEvents';
 import TopNav from './TopNav';
 function App() {
   return (
@@ -15,8 +16,9 @@ function App() {
       <TopNav />
       <div className="bg-blue-500 min-h-screen flex flex-col">
       <Routes>
-            <Route path="/" element={<MainPage />} />
+      <Route path="/" element={<MainPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/volunteer" element={<VolunteerEvents/>} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/question" element={<QuestionPage />} />
             <Route path="/events" element={<CreateEventsPage />} />

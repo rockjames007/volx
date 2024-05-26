@@ -15,7 +15,7 @@ const QuestionsPage = () => {
   return (
     
     <div className="bg-blue-500 max-h-fit min-h-screen flex flex-col">
-      <div className='flex items-center justify-center items-center'>
+      <div className='flex items-center justify-center'>
       <div className="items-center bg-white shadow-md rounded-lg p-8 max-w-lg my-9 w-screen">
         <form>
         <h1 className="text-3xl font-bold text-center mb-0">Interest Level</h1>

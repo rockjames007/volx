@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ProfilePage.css';
-
-import TopNav from './TopNav';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { userState } from '../state/recoilstate.js';
 
 function ProfilePage() {
+  
+  const [user, setUser] = useRecoilState(userState);
     const [profilePicture, setProfilePicture] = useState(null);
-    const [memberSinceDate, setMemberSinceDate] = useState("");
-    const [isOrganizer, setIsOrganizer] = useState(false);
     const [requiredVolunteers, setRequiredVolunteers] = useState(20);
     const fileInputRef = useRef(null);
     const [activeTab, setActiveTab] = useState("Leaderboard");
@@ -250,8 +250,8 @@ function ProfilePage() {
         );
     }
     return (
-        <div className="profile-container bg-blue-500 min-h-screen max-h-fit min-h-screen flex flex-col">
-            <div className='flex items-center justify-center items-center'>
+        <div className="profile-container bg-blue-500 max-h-fit min-h-screen flex flex-col">
+            <div className='flex justify-center items-center'>
                 <div className='items-left bg-white shadow-md rounded-lg p-8 my-9 w-2/3'>
                     <div className="profile-picture-container flex justify-center items-center mt-8">
                         {profilePicture ? (
@@ -274,7 +274,7 @@ function ProfilePage() {
                         <button className={`tab ${activeTab === "Messages" ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-r-md`} onClick={() => handleTabClick("Messages")}>Messages</button>
                         {/* Button for organizers to automatch volunteers */}
                         {/* Conditionally render based on user type (organizer or user) */}
-                        {isOrganizer && (
+                        {user.isOrg && (
                             <div className="flex items-center">
                                 <input type="number" value={requiredVolunteers} onChange={(e) => setRequiredVolunteers(parseInt(e.target.value))} className="input-field mr-2" />
                                 <button className="automatch-button bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 ml-2 rounded-md" onClick={handleAutomatchVolunteers}>
@@ -285,7 +285,7 @@ function ProfilePage() {
                     </div>
                 </div>
             </div>
-            <div className='flex items-center justify-center items-center'>
+            <div className='flex items-center justify-center'>
                 {content}
             </div>
         </div>

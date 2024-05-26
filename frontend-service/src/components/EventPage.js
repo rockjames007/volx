@@ -1,10 +1,10 @@
 import { useRecoilState } from 'recoil';
-import { mainEvents } from '../data/event-mainpage';
+import { eventCategories } from '../data/event-mainpage';
 import { eventIdState } from '../state/recoilstate';
 
 const EventPage = () => {
     const [eventId, setEventId] = useRecoilState(eventIdState);
-    const event = mainEvents.find(x => x.eventId === eventId);
+    const event = eventCategories.find(x => x.eventId === eventId);
     return <>
         {event &&
             <div>

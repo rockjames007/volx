@@ -1,8 +1,8 @@
 export const Category = {
-    ENVIRONMENT: 'environment',
-    HEALTH: 'health',
-    MENTAL_HEALTH: 'mentalHealth',
-    ANIMAL_WELFARE: 'animalWelfare',
-    EDUCATION: 'education',
-    SOCIAL_SERVICES: 'socialServices'
+    ENVIRONMENT: 'ENVIRONMENT',
+    HEALTH: 'HEALTH',
+    MENTAL_HEALTH: 'MENTAL HEALTH',
+    ANIMAL_WELFARE: 'ANIMAL WELFARE',
+    EDUCATION: 'EDUCATION',
+    SOCIAL_SERVICES: 'SOCIAL SERVICES'
 }

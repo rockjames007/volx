@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
-import TopNav from '../TopNav';
 import '../App.css';
 
 const CreateEventPage = () => {
