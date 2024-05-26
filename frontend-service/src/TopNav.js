@@ -1,17 +1,17 @@
 import React from 'react';
 import './TopNav.css';
 import './index.js'; 
-
+import { Link } from "react-router-dom"
 const TopNav = () => {
   return (
     <nav className="topnav">
       <div className="logo">
-        <a href="/">VolX</a>
+        <Link to="/">VolX</Link>
       </div>
       <div className="nav-links">
-        <a href="/events">Create Events</a>
-        <a href="/login">Login</a>
-        <a href="/profile">Profile</a>
+        <Link to="/events">Create Events</Link>
+        <Link to="/login">Login</Link>
+        <Link to="/profile">Profile</Link>
       </div>
     </nav>
   );
