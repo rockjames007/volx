@@ -272,16 +272,6 @@ function ProfilePage() {
                         <button className={`tab ${activeTab === "View Events" ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-blue-600 text-white font-semibold py-2 px-4`} onClick={() => handleTabClick("View Events")}>View Events</button>
                         <button className={`tab ${activeTab === "Rewards" ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-r-md`} onClick={() => handleTabClick("Rewards")}>Rewards</button>
                         <button className={`tab ${activeTab === "Messages" ? 'bg-blue-500' : 'bg-gray-200'} hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-r-md`} onClick={() => handleTabClick("Messages")}>Messages</button>
-                        {/* Button for organizers to automatch volunteers */}
-                        {/* Conditionally render based on user type (organizer or user) */}
-                        {user.isOrg && (
-                            <div className="flex items-center">
-                                <input type="number" value={requiredVolunteers} onChange={(e) => setRequiredVolunteers(parseInt(e.target.value))} className="input-field mr-2" />
-                                <button className="automatch-button bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 ml-2 rounded-md" onClick={handleAutomatchVolunteers}>
-                                    Automatch Volunteers
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
