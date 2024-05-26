@@ -16,6 +16,7 @@ const LoginPage = () => {
     e.preventDefault();
     if(user.email==="org@gmail.com" && user.password==="org123"){
       setUser({...user,isOrg:true,isLoggedIn:true});
+      navigate('/');
     } else if(user.email==="test@gmail.com" && user.password==="test123"){
       setUser({...user,isOrg:false,isLoggedIn:true});
       navigate('/volunteer');
