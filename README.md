@@ -38,9 +38,25 @@ JoinTeer is a set of Spring Boot microservices behind an API gateway, plus a Rea
 | API gateway (the only URL the frontend talks to) | `api-gateway` | 9000 |
 | Web app | `frontend-service` | 3000 |
 
-> The project was previously called Volx; internal identifiers such as the `volx` database, the `volx.*` config keys and the repository name keep that name.
+> The project was previously called Volx; a few internal identifiers such as the `volx.*` config keys and the `VOLX_ALLOWED_ORIGINS` variable keep that name.
 
-**Prerequisites:** Java 17+, Maven, Node 18+, and PostgreSQL with a database named `volx` (user/password `postgres`/`postgres`, see each service's `application.yaml`).
+### Quickest: run the backend with Docker
+
+Needs only [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine with Compose). Clone the repository (`git clone https://github.com/rockjames007/jointeer.git`), then from its folder run the commands below. This starts PostgreSQL, the service registry, the authentication and profile services and the API gateway:
+
+```
+docker compose up -d --build     # first build takes a few minutes
+docker compose logs -f           # follow the logs; Ctrl+C to stop following
+docker compose down              # stop (add -v to also delete the database)
+```
+
+The API gateway is then at `http://localhost:9000`. Data is kept in a Docker volume between restarts. Each service has its own database (`jointeer_auth`, `jointeer_profile`), created automatically on first start. For a public server, copy `.env.example` to `.env` and set a database password, a JWT secret and the allowed website origins.
+
+Then start the website (step 3 below) and open `http://localhost:3000`.
+
+### Without Docker
+
+**Prerequisites:** Java 17+, Maven, Node 18+, and PostgreSQL with two databases, `jointeer_auth` and `jointeer_profile` (user/password `postgres`/`postgres`, see each service's `application.yaml`). Each service needs its own database: they both have a `users` table with different columns.
 
 1. **Clone the repository:** `git clone https://github.com/rockjames007/jointeer.git`
 2. **Start the backend**, each in its own terminal and in this order:

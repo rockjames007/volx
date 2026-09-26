@@ -1,0 +1,65 @@
+name: Backend
+
+on:
+  pull_request:
+    paths:
+      - 'authentication/**'
+      - 'profile-service/**'
+      - 'api-gateway/**'
+      - 'eureka-server/**'
+      - 'docker-compose.yml'
+      - 'docker/**'
+      - '.github/workflows/backend.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'authentication/**'
+      - 'profile-service/**'
+      - 'api-gateway/**'
+      - 'eureka-server/**'
+      - 'docker-compose.yml'
+      - 'docker/**'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [authentication, profile-service]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - run: mvn -B test
+        working-directory: ${{ matrix.service }}
+
+  docker:
+    # Builds the real images and checks the whole stack starts and answers through the gateway.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: docker compose up -d --build
+      - name: Wait for the gateway to route to both services
+        run: |
+          for i in $(seq 1 60); do
+            events=$(curl -s -o /dev/null -w '%{http_code}' localhost:9000/profile/events || true)
+            login=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+              -d '{"username":"test@gmail.com","password":"test123"}' localhost:9000/auth/authorize || true)
+            if [ "$events" = 200 ] && [ "$login" = 200 ]; then echo "Stack is up"; exit 0; fi
+            sleep 5
+          done
+          echo "Stack did not become ready"; exit 1
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+      - if: always()
+        run: docker compose down -v
