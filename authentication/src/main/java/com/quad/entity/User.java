@@ -30,6 +30,21 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // Nullable so accounts created before roles existed still load; they count as volunteers.
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Role role;
+
+    @Column(name = "full_name", length = 100)
+    private String fullName;
+
+    @Column(name = "organization_name", length = 120)
+    private String organizationName;
+
+    public Role getRole() {
+        return role == null ? Role.VOLUNTEER : role;
+    }
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;

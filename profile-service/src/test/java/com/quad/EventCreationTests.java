@@ -56,8 +56,11 @@ class EventCreationTests {
 	}
 
 	private String tokenFor(String username, long ttlMillis) {
+		// Organizer token, as issued by the authentication service.
 		return Jwts.builder()
 				.setSubject(username)
+				.claim("role", "ORGANIZER")
+				.claim("org", "Green SG")
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + ttlMillis))
 				.signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey)), SignatureAlgorithm.HS256)

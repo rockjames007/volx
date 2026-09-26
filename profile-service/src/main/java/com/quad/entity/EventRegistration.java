@@ -20,5 +20,7 @@ public class EventRegistration {
     private Event event;
     @Column(nullable = false)
     private String username;
+    // The volunteer's full name at sign-up, for the organizer's attendee list.
+    private String volunteerName;
     private LocalDateTime createdDate;
 }

@@ -40,7 +40,7 @@ function CauseFilter({ categories, selected, onSelect }) {
 }
 
 const MainPage = () => {
-  const { username } = useAuth();
+  const { username, isOrganizer } = useAuth();
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [goingIds, setGoingIds] = useState(new Set());
@@ -154,7 +154,7 @@ const MainPage = () => {
               <p className="text-sm text-slate-500 mt-1">
                 {query || cause ? 'Try another cause or search term.' : 'Be the first to organize something good in your community.'}
               </p>
-              {!query && !cause && (
+              {!query && !cause && isOrganizer && (
                 <Link to="/events/new" className="inline-block mt-4 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg">Post an event</Link>
               )}
             </div>
@@ -182,15 +182,19 @@ const MainPage = () => {
           </section>
         )}
 
-        <section className="rounded-3xl bg-slate-900 text-white p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <h2 className="text-2xl font-bold">Running a cause?</h2>
-            <p className="text-slate-300 mt-1">Post an event and reach volunteers who already care about it.</p>
-          </div>
-          <Link to="/events/new" className="shrink-0 inline-flex items-center gap-2 font-semibold bg-white text-slate-900 hover:bg-violet-50 px-5 py-3 rounded-xl">
-            <Icon name="plus" className="w-4 h-4" /> Post an event
-          </Link>
-        </section>
+        {/* Organizers are invited to post; volunteers don't see a prompt they can't act on. */}
+        {(!username || isOrganizer) && (
+          <section className="rounded-3xl bg-slate-900 text-white p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h2 className="text-2xl font-bold">Running a cause?</h2>
+              <p className="text-slate-300 mt-1">Post an event and reach volunteers who already care about it.</p>
+            </div>
+            <Link to={isOrganizer ? '/events/new' : '/register?type=organizer'}
+                  className="shrink-0 inline-flex items-center gap-2 font-semibold bg-white text-slate-900 hover:bg-violet-50 px-5 py-3 rounded-xl">
+              <Icon name="plus" className="w-4 h-4" /> {isOrganizer ? 'Post an event' : 'Sign up as an organizer'}
+            </Link>
+          </section>
+        )}
       </div>
     </Layout>
   );

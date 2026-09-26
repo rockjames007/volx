@@ -88,12 +88,15 @@ cd frontend-service && npm test
 
 | Method | Path | Notes |
 |---|---|---|
-| POST | `/auth/register` | `{username, email, password}` → `{jwt, username, expiresIn}` |
+| POST | `/auth/register` | `{username, email, password, fullName, role?, organizationName?}` → `{jwt, username, expiresIn, role, fullName, organizationName}`. `role` is `VOLUNTEER` (default) or `ORGANIZER`; organizers must give `organizationName`. The JWT carries `role`, `name` and `org` claims. |
 | POST | `/auth/authorize` | `{username, password}`; `username` may be the email |
 | GET | `/users/me` | requires `Authorization: Bearer <jwt>` |
 | GET | `/profile/events?page=0&size=20&sort=fromDate` | active events that haven't finished, paged; each includes `volunteersJoined` |
 | GET | `/profile/events/{id}`, `/profile/events/categories/{categoryId}` | |
-| POST | `/profile/events` | requires `Authorization: Bearer <jwt>`; `{name, categoryId, fromDate, toDate, description?, noOfParticipant?, address?}` |
+| POST | `/profile/events` | organizer accounts only; `{name, categoryId, fromDate, toDate, description?, noOfParticipant?, address?}` |
+| PUT | `/profile/events/{id}` | the event's organizer only; same body as POST |
+| POST | `/profile/events/{id}/cancel` | the event's organizer only; hides it from the listing and stops sign-ups |
+| GET | `/profile/events/{id}/volunteers` | the event's organizer only; who joined and when |
 | GET | `/profile/categories` | a starter set is created on first startup |
 | POST / DELETE | `/profile/events/{id}/volunteers` | join / leave an event (requires login); refuses full or finished events |
 | GET | `/profile/me/events` | `{joined, organizing}` for the logged-in user |

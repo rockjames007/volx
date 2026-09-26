@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getEvent, getMyEvents, joinEvent, leaveEvent } from '../api';
+import { cancelEvent, getEvent, getMyEvents, getToken, getVolunteers, joinEvent, leaveEvent } from '../api';
 import { useAuth } from '../lib/auth';
 import { categoryStyle } from '../lib/categories';
 import { formatEventWhen, formatPlace, hasEnded, spotsLeft } from '../lib/format';
@@ -8,18 +8,93 @@ import { CategoryPill, SpotsBar } from './EventCard';
 import Icon from './Icon';
 import Layout from './Layout';
 
+const formatJoined = (value) =>
+  new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+
+// The event's own organizer: who's coming, and edit / cancel.
+function OrganizerPanel({ event, onCancelled }) {
+  const [volunteers, setVolunteers] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const cancelled = event.isActive === false;
+
+  useEffect(() => {
+    getVolunteers(event.id).then(setVolunteers).catch((err) => setError(err.message));
+  }, [event.id, event.volunteersJoined]);
+
+  const handleCancel = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      onCancelled(await cancelEvent(event.id));
+      setConfirming(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <aside className="self-start bg-white border border-slate-200 rounded-2xl p-6 shadow-sm lg:sticky lg:top-24 space-y-5">
+      <p className="text-sm font-semibold text-violet-700">You're organizing this event</p>
+      <SpotsBar event={event} />
+
+      <div>
+        <h2 className="font-bold mb-2">Volunteers{volunteers ? ` (${volunteers.length})` : ''}</h2>
+        {!volunteers && !error && <p className="text-sm text-slate-500">Loading…</p>}
+        {volunteers && volunteers.length === 0 && <p className="text-sm text-slate-500">No one has joined yet.</p>}
+        {volunteers && volunteers.length > 0 && (
+          <ul className="divide-y divide-slate-100 max-h-72 overflow-y-auto" aria-label="Volunteers who joined">
+            {volunteers.map((v) => (
+              <li key={v.username} className="py-2 flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0">
+                  <span className="block font-medium truncate">{v.name}</span>
+                  <span className="block text-xs text-slate-500">@{v.username}</span>
+                </span>
+                <span className="text-xs text-slate-500 shrink-0">Joined {formatJoined(v.joinedAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {!cancelled && !hasEnded(event) && (
+        confirming ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+            <p className="text-sm text-red-800">Cancel this event? It will disappear from the listing, and volunteers who joined will see that it's cancelled.</p>
+            <div className="flex gap-2">
+              <button onClick={handleCancel} disabled={busy}
+                      className="flex-1 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg disabled:opacity-50">
+                {busy ? 'Cancelling…' : 'Yes, cancel event'}
+              </button>
+              <button onClick={() => setConfirming(false)} className="flex-1 text-sm font-medium border border-slate-300 bg-white px-3 py-2 rounded-lg">Keep it</button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Link to={`/events/${event.id}/edit`} className="flex-1 text-center text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-3 py-2.5 rounded-xl">Edit event</Link>
+            <button onClick={() => setConfirming(true)} className="flex-1 text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 px-3 py-2.5 rounded-xl">Cancel event</button>
+          </div>
+        )
+      )}
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+    </aside>
+  );
+}
+
 function JoinPanel({ event, going, onJoin, onLeave, busy, error }) {
   const { username } = useAuth();
   const location = useLocation();
   const ended = hasEnded(event);
   const full = spotsLeft(event) === 0;
-  const isOrganizer = username && username === event.createdBy;
 
   let action;
-  if (ended) {
+  if (event.isActive === false) {
+    action = <p className="text-slate-600">This event was cancelled by the organizer.{going ? " You don't need to do anything." : ''}</p>;
+  } else if (ended) {
     action = <p className="text-slate-600">This event has finished. Thank you to everyone who helped!</p>;
-  } else if (isOrganizer) {
-    action = <p className="text-slate-600">You're organizing this event.</p>;
   } else if (!username) {
     action = (
       <Link to="/login" state={{ from: location.pathname }}
@@ -50,7 +125,7 @@ function JoinPanel({ event, going, onJoin, onLeave, busy, error }) {
 
   return (
     <aside className="self-start bg-white border border-slate-200 rounded-2xl p-6 shadow-sm lg:sticky lg:top-24">
-      <SpotsBar event={event} className="mb-5" />
+      {event.isActive !== false && <SpotsBar event={event} className="mb-5" />}
       {action}
       {error && <p role="alert" className="text-sm text-red-600 mt-3">{error}</p>}
     </aside>
@@ -94,7 +169,7 @@ const EventDetailPage = () => {
       setEvent(await action(id));
       setGoing(nowGoing);
     } catch (err) {
-      if (!localStorage.getItem('volx.token')) {
+      if (!getToken()) {
         navigate('/login', { state: { from: `/events/${id}` } });
         return;
       }
@@ -121,6 +196,8 @@ const EventDetailPage = () => {
 
   const style = categoryStyle(event.category?.category);
   const place = formatPlace(event.address);
+  const isOwner = Boolean(username) && username === event.createdBy;
+  const cancelled = event.isActive === false;
 
   return (
     <Layout>
@@ -133,6 +210,11 @@ const EventDetailPage = () => {
           <h1 className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight">{event.name}</h1>
         </div>
       </div>
+      {cancelled && (
+        <div className="bg-red-50 border-b border-red-200 text-red-800" role="status">
+          <p className="max-w-5xl mx-auto px-4 py-3 text-sm font-semibold">This event has been cancelled.</p>
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto px-4 py-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
@@ -140,7 +222,7 @@ const EventDetailPage = () => {
           <ul className="space-y-3 text-slate-700">
             <li className="flex items-start gap-3"><Icon name="calendar" className="w-5 h-5 mt-0.5 text-slate-400" />{formatEventWhen(event.fromDate, event.toDate)}</li>
             {place && <li className="flex items-start gap-3"><Icon name="pin" className="w-5 h-5 mt-0.5 text-slate-400" />{place}</li>}
-            {event.createdBy && <li className="flex items-start gap-3"><Icon name="user" className="w-5 h-5 mt-0.5 text-slate-400" />Organized by {event.createdBy}</li>}
+            {event.createdBy && <li className="flex items-start gap-3"><Icon name="user" className="w-5 h-5 mt-0.5 text-slate-400" />Organized by {event.organizerName || event.createdBy}</li>}
             {event.noOfParticipant > 0 && <li className="flex items-start gap-3"><Icon name="users" className="w-5 h-5 mt-0.5 text-slate-400" />{event.noOfParticipant} volunteers needed</li>}
           </ul>
           <div>
@@ -148,8 +230,12 @@ const EventDetailPage = () => {
             <p className="text-slate-700 whitespace-pre-line">{event.description || 'The organizer hasn\'t added a description yet.'}</p>
           </div>
         </div>
-        <JoinPanel event={event} going={going} busy={busy} error={error}
-                   onJoin={() => update(joinEvent, true)} onLeave={() => update(leaveEvent, false)} />
+        {isOwner ? (
+          <OrganizerPanel event={event} onCancelled={setEvent} />
+        ) : (
+          <JoinPanel event={event} going={going} busy={busy} error={error}
+                     onJoin={() => update(joinEvent, true)} onLeave={() => update(leaveEvent, false)} />
+        )}
       </div>
     </Layout>
   );

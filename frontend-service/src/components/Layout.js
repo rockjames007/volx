@@ -18,7 +18,7 @@ const navClass = ({ isActive }) =>
   `px-3 py-2 rounded-lg text-sm font-medium ${isActive ? 'text-violet-700 bg-violet-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`;
 
 function Header() {
-  const { username, signOut } = useAuth();
+  const { username, isOrganizer, organizationName, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -44,13 +44,21 @@ function Header() {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link to="/events/new" className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:text-violet-900 px-3 py-2">
-            <Icon name="plus" className="w-4 h-4" /> Post an event
-          </Link>
+          {isOrganizer && (
+            <Link to="/events/new" className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:text-violet-900 px-3 py-2">
+              <Icon name="plus" className="w-4 h-4" /> Post an event
+            </Link>
+          )}
+          {!username && (
+            <Link to="/register?type=organizer" className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2">For organizers</Link>
+          )}
           {username ? (
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
               <span className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 font-bold grid place-items-center uppercase" aria-hidden="true">{username[0]}</span>
-              <span className="text-sm font-medium text-slate-700">{username}</span>
+              <span className="text-sm leading-tight">
+                <span className="block font-medium text-slate-700">{username}</span>
+                {isOrganizer && organizationName && <span className="block text-xs text-slate-500">{organizationName}</span>}
+              </span>
               <button onClick={handleLogout} className="text-sm text-slate-500 hover:text-slate-900">Log out</button>
             </div>
           ) : (
@@ -70,7 +78,8 @@ function Header() {
       {open && (
         <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 flex flex-col gap-1">
           {links}
-          <NavLink to="/events/new" className={navClass} onClick={() => setOpen(false)}>Post an event</NavLink>
+          {isOrganizer && <NavLink to="/events/new" className={navClass} onClick={() => setOpen(false)}>Post an event</NavLink>}
+          {!username && <NavLink to="/register?type=organizer" className={navClass} onClick={() => setOpen(false)}>For organizers</NavLink>}
           {username ? (
             <button onClick={handleLogout} className="text-left px-3 py-2 text-sm text-slate-600">Log out ({username})</button>
           ) : (

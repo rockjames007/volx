@@ -1,5 +1,6 @@
 package com.quad.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -24,20 +25,22 @@ public class JwtVerifier {
     }
 
     /**
-     * @return the username of the logged-in user
+     * @return the logged-in user; tokens issued before account types existed count as volunteers
      * @throws ResponseStatusException 401 if the header is missing or the token is invalid or expired
      */
-    public String requireUsername(String authorizationHeader) {
+    public Caller requireCaller(String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Log in to continue");
         }
         try {
-            return Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(signingKey)
                     .build()
                     .parseClaimsJws(authorizationHeader.substring(7))
-                    .getBody()
-                    .getSubject();
+                    .getBody();
+            String role = claims.get("role", String.class);
+            return new Caller(claims.getSubject(), role == null ? "VOLUNTEER" : role,
+                    claims.get("name", String.class), claims.get("org", String.class));
         } catch (JwtException | IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Your session has expired, please log in again");
         }

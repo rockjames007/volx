@@ -12,9 +12,9 @@ const TABS = [
 ];
 
 const MyEventsPage = () => {
-  const { username } = useAuth();
+  const { username, isOrganizer } = useAuth();
   const [mine, setMine] = useState(null);
-  const [tab, setTab] = useState('joined');
+  const [tab, setTab] = useState(isOrganizer ? 'organizing' : 'joined');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -26,8 +26,10 @@ const MyEventsPage = () => {
     return <Navigate to="/login" replace state={{ from: '/me' }} />;
   }
 
-  const current = TABS.find((t) => t.key === tab);
-  const events = mine?.[tab] || [];
+  // Volunteer accounts can't organize, so they only get the "Going" list.
+  const tabs = isOrganizer ? TABS : TABS.filter((t) => t.key === 'joined');
+  const current = tabs.find((t) => t.key === tab) || tabs[0];
+  const events = mine?.[current.key] || [];
   const upcoming = events.filter((event) => !hasEnded(event));
   const past = events.filter(hasEnded);
 
@@ -37,14 +39,16 @@ const MyEventsPage = () => {
         <h1 className="text-3xl font-extrabold tracking-tight">My events</h1>
         {mine && (
           <p className="text-slate-600 mt-1">
-            You've signed up for {mine.joined.length} {mine.joined.length === 1 ? 'event' : 'events'} and organized {mine.organizing.length}.
+            {isOrganizer
+              ? `You're organizing ${mine.organizing.length} ${mine.organizing.length === 1 ? 'event' : 'events'}.`
+              : `You've signed up for ${mine.joined.length} ${mine.joined.length === 1 ? 'event' : 'events'}.`}
           </p>
         )}
 
         <div className="mt-6 border-b border-slate-200 flex gap-6" role="tablist">
-          {TABS.map((t) => (
-            <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-                    className={`pb-3 -mb-px text-sm font-semibold border-b-2 ${tab === t.key ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+          {tabs.map((t) => (
+            <button key={t.key} role="tab" aria-selected={current.key === t.key} onClick={() => setTab(t.key)}
+                    className={`pb-3 -mb-px text-sm font-semibold border-b-2 ${current.key === t.key ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
               {t.label}{mine ? ` (${mine[t.key].length})` : ''}
             </button>
           ))}
@@ -61,7 +65,7 @@ const MyEventsPage = () => {
           )}
           {upcoming.length > 0 && (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {upcoming.map((event) => <EventCard key={event.id} event={event} going={tab === 'joined'} />)}
+              {upcoming.map((event) => <EventCard key={event.id} event={event} going={current.key === 'joined'} />)}
             </div>
           )}
           {past.length > 0 && (

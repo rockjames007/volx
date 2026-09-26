@@ -31,6 +31,8 @@ public class EventDto {
     private Integer volunteersJoined;
     @JsonProperty("createdBy")
     private String createdBy;
+    @JsonProperty("organizerName")
+    private String organizerName;
     @JsonProperty("createdDate")
     private LocalDateTime createdDate;
 }

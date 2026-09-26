@@ -3,6 +3,7 @@ package com.quad.controller;
 import com.quad.dto.AuthenticationRequest;
 import com.quad.dto.AuthenticationResponse;
 import com.quad.dto.RegisterRequest;
+import com.quad.entity.Role;
 import com.quad.entity.User;
 import com.quad.repository.UserRepository;
 import com.quad.service.CustomUserDetailsService;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestController
@@ -55,7 +59,8 @@ public class AuthenticationController {
         }
 
         final UserDetails userDetails = customUserDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-        return Mono.just(tokenFor(userDetails));
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        return Mono.just(tokenFor(user, userDetails));
     }
 
     @PostMapping("/register")
@@ -68,17 +73,39 @@ public class AuthenticationController {
             return Mono.error(new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered"));
         }
 
+        Role role = registerRequest.getRole() == null ? Role.VOLUNTEER : registerRequest.getRole();
+        String organizationName = trimToNull(registerRequest.getOrganizationName());
+        if (role == Role.ORGANIZER && organizationName == null) {
+            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizers need an organization name"));
+        }
+
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setFullName(registerRequest.getFullName().trim());
+        user.setRole(role);
+        user.setOrganizationName(role == Role.ORGANIZER ? organizationName : null);
         userRepository.save(user);
 
-        return Mono.just(tokenFor(customUserDetailsService.loadUserByUsername(user.getUsername())));
+        return Mono.just(tokenFor(user, customUserDetailsService.loadUserByUsername(user.getUsername())));
     }
 
-    private AuthenticationResponse tokenFor(UserDetails userDetails) {
-        return new AuthenticationResponse(jwtService.generateToken(userDetails), userDetails.getUsername(),
-                jwtService.getExpirationTime());
+    // Other services read these claims instead of calling back here.
+    private AuthenticationResponse tokenFor(User user, UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        if (user.getFullName() != null) {
+            claims.put("name", user.getFullName());
+        }
+        if (user.getOrganizationName() != null) {
+            claims.put("org", user.getOrganizationName());
+        }
+        return new AuthenticationResponse(jwtService.generateToken(claims, userDetails), user.getUsername(),
+                jwtService.getExpirationTime(), user.getRole(), user.getFullName(), user.getOrganizationName());
+    }
+
+    private static String trimToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

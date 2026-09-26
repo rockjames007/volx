@@ -4,6 +4,7 @@ import com.quad.dto.CategoryDto;
 import com.quad.dto.CreateEventRequest;
 import com.quad.dto.EventDto;
 import com.quad.dto.MyEventsDto;
+import com.quad.dto.VolunteerSignupDto;
 import com.quad.entity.Address;
 import com.quad.entity.Category;
 import com.quad.entity.Event;
@@ -11,6 +12,7 @@ import com.quad.entity.EventRegistration;
 import com.quad.repository.CategoryJpaRepository;
 import com.quad.repository.EventJpaRepository;
 import com.quad.repository.EventRegistrationJpaRepository;
+import com.quad.security.Caller;
 import com.quad.service.EventService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,14 +64,59 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDto createEvent(CreateEventRequest request, String createdBy) {
+    public EventDto createEvent(CreateEventRequest request, Caller organizer) {
+        if (!organizer.isOrganizer()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only organizer accounts can post events");
+        }
+        Event event = new Event();
+        applyDetails(event, request);
+        event.setIsActive(true);
+        event.setCreatedBy(organizer.username());
+        event.setOrganizerName(organizer.displayName());
+        event.setCreatedDate(LocalDateTime.now());
+
+        return modelMapper.map(eventJpaRepository.save(event), EventDto.class);
+    }
+
+    @Override
+    @Transactional
+    public EventDto updateEvent(String eventId, CreateEventRequest request, Caller organizer) {
+        Event event = requireOwnEvent(eventId, organizer);
+        if (!Boolean.TRUE.equals(event.getIsActive())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cancelled events can't be edited");
+        }
+        long joined = eventRegistrationJpaRepository.countByEventId(event.getId());
+        if (request.getNoOfParticipant() != null && request.getNoOfParticipant() < joined) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    joined + " volunteers have already joined, so you need at least " + joined + " spots");
+        }
+        applyDetails(event, request);
+        return toDtoWithCount(eventJpaRepository.save(event));
+    }
+
+    @Override
+    @Transactional
+    public EventDto cancelEvent(String eventId, Caller organizer) {
+        Event event = requireOwnEvent(eventId, organizer);
+        event.setIsActive(false);
+        return toDtoWithCount(eventJpaRepository.save(event));
+    }
+
+    @Override
+    public List<VolunteerSignupDto> getVolunteers(String eventId, Caller organizer) {
+        Event event = requireOwnEvent(eventId, organizer);
+        return eventRegistrationJpaRepository.findByEventIdOrderByCreatedDateAsc(event.getId()).stream()
+                .map(r -> new VolunteerSignupDto(r.getUsername(),
+                        r.getVolunteerName() != null ? r.getVolunteerName() : r.getUsername(), r.getCreatedDate()))
+                .toList();
+    }
+
+    private void applyDetails(Event event, CreateEventRequest request) {
         if (!request.getToDate().isAfter(request.getFromDate())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The end date must be after the start date");
         }
         Category category = categoryJpaRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown category"));
-
-        Event event = new Event();
         event.setName(request.getName().trim());
         event.setDescription(request.getDescription());
         event.setCategory(category);
@@ -77,13 +124,20 @@ public class EventServiceImpl implements EventService {
         event.setToDate(request.getToDate());
         event.setNoOfParticipant(request.getNoOfParticipant());
         if (request.getAddress() != null) {
-            event.setAddress(modelMapper.map(request.getAddress(), Address.class));
+            // Update the existing address row in place rather than orphaning it.
+            Address address = event.getAddress() != null ? event.getAddress() : new Address();
+            modelMapper.map(request.getAddress(), address);
+            event.setAddress(address);
         }
-        event.setIsActive(true);
-        event.setCreatedBy(createdBy);
-        event.setCreatedDate(LocalDateTime.now());
+    }
 
-        return modelMapper.map(eventJpaRepository.save(event), EventDto.class);
+    // Only the organizer who posted an event may manage it.
+    private Event requireOwnEvent(String eventId, Caller organizer) {
+        Event event = requireEvent(eventId);
+        if (!organizer.username().equals(event.getCreatedBy())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only this event's organizer can do that");
+        }
+        return event;
     }
 
     @Override
@@ -95,8 +149,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventDto joinEvent(String eventId, String username) {
+    public EventDto joinEvent(String eventId, Caller volunteer) {
+        String username = volunteer.username();
         Event event = requireEvent(eventId);
+        if (username.equals(event.getCreatedBy())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You're organizing this event");
+        }
         if (!Boolean.TRUE.equals(event.getIsActive()) || hasEnded(event)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "This event is no longer taking volunteers");
         }
@@ -111,6 +169,7 @@ public class EventServiceImpl implements EventService {
         EventRegistration registration = new EventRegistration();
         registration.setEvent(event);
         registration.setUsername(username);
+        registration.setVolunteerName(volunteer.displayName());
         registration.setCreatedDate(LocalDateTime.now());
         eventRegistrationJpaRepository.save(registration);
 

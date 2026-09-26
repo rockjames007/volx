@@ -4,11 +4,13 @@ import com.quad.dto.CategoryDto;
 import com.quad.dto.CreateEventRequest;
 import com.quad.dto.EventDto;
 import com.quad.dto.MyEventsDto;
+import com.quad.dto.VolunteerSignupDto;
 import com.quad.dto.OrganizerDto;
 import com.quad.dto.VolunteerDto;
 import com.quad.service.EventService;
 import com.quad.service.OrganizerService;
 import com.quad.service.VolunteerService;
+import com.quad.security.Caller;
 import com.quad.security.RequireLoginInterceptor;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +75,28 @@ public class ProfileController {
 
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<EventDto> createEvent(@RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username,
+    public Mono<EventDto> createEvent(@RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller,
                                       @Valid @RequestBody CreateEventRequest request){
-        return Mono.just(eventService.createEvent(request, username));
+        return Mono.just(eventService.createEvent(request, caller));
+    }
+
+    @PutMapping("/events/{eventId}")
+    public Mono<EventDto> updateEvent(@PathVariable("eventId") String eventId,
+                                      @RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller,
+                                      @Valid @RequestBody CreateEventRequest request){
+        return Mono.just(eventService.updateEvent(eventId, request, caller));
+    }
+
+    @PostMapping("/events/{eventId}/cancel")
+    public Mono<EventDto> cancelEvent(@PathVariable("eventId") String eventId,
+                                      @RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller){
+        return Mono.just(eventService.cancelEvent(eventId, caller));
+    }
+
+    @GetMapping("/events/{eventId}/volunteers")
+    public Mono<List<VolunteerSignupDto>> getVolunteers(@PathVariable("eventId") String eventId,
+                                                        @RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller){
+        return Mono.just(eventService.getVolunteers(eventId, caller));
     }
 
     @GetMapping("/categories")
@@ -85,18 +106,18 @@ public class ProfileController {
 
     @PostMapping("/events/{eventId}/volunteers")
     public Mono<EventDto> joinEvent(@PathVariable("eventId") String eventId,
-                                    @RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username){
-        return Mono.just(eventService.joinEvent(eventId, username));
+                                    @RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller){
+        return Mono.just(eventService.joinEvent(eventId, caller));
     }
 
     @DeleteMapping("/events/{eventId}/volunteers")
     public Mono<EventDto> leaveEvent(@PathVariable("eventId") String eventId,
-                                     @RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username){
-        return Mono.just(eventService.leaveEvent(eventId, username));
+                                     @RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller){
+        return Mono.just(eventService.leaveEvent(eventId, caller.username()));
     }
 
     @GetMapping("/me/events")
-    public Mono<MyEventsDto> getMyEvents(@RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username){
-        return Mono.just(eventService.getMyEvents(username));
+    public Mono<MyEventsDto> getMyEvents(@RequestAttribute(RequireLoginInterceptor.CALLER_ATTRIBUTE) Caller caller){
+        return Mono.just(eventService.getMyEvents(caller.username()));
     }
 }

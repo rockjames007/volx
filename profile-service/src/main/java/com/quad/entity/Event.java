@@ -29,6 +29,8 @@ public class Event {
     private Boolean isActive;
     private Integer noOfParticipant;
     private String createdBy;
+    // Shown as "Organized by …"; the organization's name at the time the event was posted.
+    private String organizerName;
     @Formula("(select count(*) from event_registration r where r.event_id = id)")
     private Integer volunteersJoined;
     private LocalDateTime createdDate;

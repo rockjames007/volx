@@ -1,5 +1,6 @@
 package com.quad.config;
 
+import com.quad.entity.Role;
 import com.quad.entity.User;
 import com.quad.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -25,18 +26,32 @@ public class DemoDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        createIfMissing("org", "org@gmail.com", "org123");
-        createIfMissing("test", "test@gmail.com", "test123");
+        createIfMissing("org", "org@gmail.com", "org123", Role.ORGANIZER, "Demo Organizer", "Green Singapore Community");
+        createIfMissing("test", "test@gmail.com", "test123", Role.VOLUNTEER, "Test Volunteer", null);
     }
 
-    private void createIfMissing(String username, String email, String password) {
-        if (userRepository.existsByEmailIgnoreCase(email) || userRepository.existsByUsername(username)) {
+    private void createIfMissing(String username, String email, String password, Role role, String fullName,
+                                 String organizationName) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .or(() -> userRepository.findByUsername(username))
+                .orElse(null);
+        if (user != null) {
+            // Demo accounts created before account types existed: fill in the missing details once.
+            if (user.getFullName() == null) {
+                user.setRole(role);
+                user.setFullName(fullName);
+                user.setOrganizationName(organizationName);
+                userRepository.save(user);
+            }
             return;
         }
-        User user = new User();
+        user = new User();
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
+        user.setFullName(fullName);
+        user.setOrganizationName(organizationName);
         userRepository.save(user);
     }
 }

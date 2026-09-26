@@ -22,6 +22,7 @@ function App() {
           <Route path="/question" element={<Navigate to="/interests" replace />} />
           <Route path="/events/new" element={<CreateEventPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/events/:id/edit" element={<CreateEventPage />} />
           <Route path="/me" element={<MyEventsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
