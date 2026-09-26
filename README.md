@@ -64,7 +64,7 @@ cd profile-service && mvn test
 cd frontend-service && npm test
 ```
 
-**Configuration for shared environments:** set `SECURITY_JWT_SECRET_KEY` (base64, 256-bit) for the authentication service, and `VOLX_ALLOWED_ORIGINS` for the gateway if the frontend is not served from `http://localhost:3000`.
+**Configuration for shared environments:** set `SECURITY_JWT_SECRET_KEY` (base64, 256-bit) to the same value for the authentication and profile services, and `VOLX_ALLOWED_ORIGINS` for the gateway if the frontend is not served from `http://localhost:3000`.
 
 ### API overview (via the gateway)
 
@@ -75,6 +75,8 @@ cd frontend-service && npm test
 | GET | `/users/me` | requires `Authorization: Bearer <jwt>` |
 | GET | `/profile/events?page=0&size=20&sort=fromDate` | active events, paged |
 | GET | `/profile/events/{id}`, `/profile/events/categories/{categoryId}` | |
+| POST | `/profile/events` | requires `Authorization: Bearer <jwt>`; `{name, categoryId, fromDate, toDate, description?, noOfParticipant?, address?}` |
+| GET | `/profile/categories` | a starter set is created on first startup |
 | GET | `/profile/volunteers`, `/profile/volunteer/{id}` | |
 | GET | `/profile/organizers`, `/profile/organizers/{id}` | |
 

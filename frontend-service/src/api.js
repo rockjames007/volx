@@ -32,6 +32,10 @@ async function request(path, { method = 'GET', body } = {}) {
   }
 
   const data = await response.json().catch(() => null);
+  if (response.status === 401 && token) {
+    // The stored token was rejected (e.g. expired): forget it so the user is asked to log in again.
+    clearSession();
+  }
   if (!response.ok) {
     throw new Error(data?.message || data?.error || `Request failed (${response.status})`);
   }
@@ -46,3 +50,7 @@ export const register = (username, email, password) =>
 
 export const getEvents = (page = 0, size = 12) =>
   request(`/profile/events?page=${page}&size=${size}&sort=fromDate`);
+
+export const getCategories = () => request('/profile/categories');
+
+export const createEvent = (event) => request('/profile/events', { method: 'POST', body: event });
