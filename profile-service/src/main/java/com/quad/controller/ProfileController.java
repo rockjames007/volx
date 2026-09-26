@@ -1,11 +1,15 @@
 package com.quad.controller;
 
+import com.quad.dto.CategoryDto;
+import com.quad.dto.CreateEventRequest;
 import com.quad.dto.EventDto;
 import com.quad.dto.OrganizerDto;
 import com.quad.dto.VolunteerDto;
 import com.quad.service.EventService;
 import com.quad.service.OrganizerService;
 import com.quad.service.VolunteerService;
+import com.quad.security.RequireLoginInterceptor;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/profile")
@@ -62,5 +68,17 @@ public class ProfileController {
     @GetMapping("/events/categories/{categoryId}")
     public Mono<Page<EventDto>> getEventsByCategory(@PathVariable("categoryId") String categoryId,@PageableDefault(size = 20) Pageable pageable){
         return Mono.just(eventService.getEventByCategoryId(categoryId,pageable));
+    }
+
+    @PostMapping("/events")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<EventDto> createEvent(@RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username,
+                                      @Valid @RequestBody CreateEventRequest request){
+        return Mono.just(eventService.createEvent(request, username));
+    }
+
+    @GetMapping("/categories")
+    public Mono<List<CategoryDto>> getCategories(){
+        return Mono.just(eventService.getAllCategories());
     }
 }

@@ -16,6 +16,7 @@ const EventCard = ({ event }) => (
       {event.category?.category && <div className="text-xs uppercase text-purple-700">{event.category.category}</div>}
       <div className="text-sm text-gray-700 mt-1">{formatDate(event.fromDate)}{event.toDate ? ` – ${formatDate(event.toDate)}` : ''}</div>
       {event.address?.area && <div className="text-sm text-gray-700">{event.address.area}</div>}
+      {event.noOfParticipant > 0 && <div className="text-sm text-gray-700">{event.noOfParticipant} volunteers needed</div>}
       {event.description && <p className="text-sm mt-2">{event.description}</p>}
     </div>
   </div>
@@ -55,6 +56,7 @@ const MainPage = () => {
         <div className="nav-links">
           {username ? (
             <>
+              <Link to="/events/new" className="text-white font-bold mr-4">Create event</Link>
               <span className="text-white mr-4">Hi, {username}</span>
               <button onClick={handleLogout} className="text-white hover:underline">Log out</button>
             </>
@@ -78,7 +80,10 @@ const MainPage = () => {
           {status === 'loading' && <p>Loading events…</p>}
           {status === 'error' && <p>Couldn't load events. Make sure the API gateway and profile service are running.</p>}
           {status === 'ready' && visibleEvents.length === 0 && (
-            <p>{query ? 'No events match your search.' : 'No upcoming events yet.'}</p>
+            <p>
+              {query ? 'No events match your search.' : 'No upcoming events yet.'}
+              {!query && username && <> <Link to="/events/new" className="text-purple-600 underline">Create the first one</Link>.</>}
+            </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleEvents.map((event) => <EventCard key={event.id} event={event} />)}

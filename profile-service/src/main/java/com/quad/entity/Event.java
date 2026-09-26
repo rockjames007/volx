@@ -26,5 +26,6 @@ public class Event {
     private LocalDateTime toDate;
     private Boolean isActive;
     private Integer noOfParticipant;
+    private String createdBy;
     private LocalDateTime createdDate;
 }

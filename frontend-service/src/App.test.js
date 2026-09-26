@@ -50,3 +50,72 @@ test('shows the server error on a failed login', async () => {
 
   expect(await screen.findByRole('alert')).toHaveTextContent('Invalid username or password');
 });
+
+describe('creating an event', () => {
+  const fillForm = () => {
+    fireEvent.change(screen.getByLabelText(/event name/i), { target: { value: 'Beach clean-up' } });
+    fireEvent.change(screen.getByLabelText(/category/i), { target: { value: '3' } });
+    fireEvent.change(screen.getByLabelText(/starts/i), { target: { value: '2030-01-05T09:00' } });
+    fireEvent.change(screen.getByLabelText(/ends/i), { target: { value: '2030-01-05T12:00' } });
+    fireEvent.change(screen.getByLabelText(/volunteers needed/i), { target: { value: '15' } });
+  };
+
+  beforeEach(() => {
+    localStorage.setItem('volx.token', 'token-123');
+    localStorage.setItem('volx.username', 'test');
+    window.history.pushState({}, '', '/events/new');
+  });
+
+  test('redirects to login when logged out', () => {
+    localStorage.clear();
+    render(<App />);
+    expect(screen.getByRole('heading', { name: /log in/i })).toBeInTheDocument();
+  });
+
+  test('submits the event with the token and returns to the listing', async () => {
+    fetch
+      .mockReturnValueOnce(respond([{ id: '3', category: 'Environment' }]))
+      .mockReturnValueOnce(respond({ id: 10, name: 'Beach clean-up' }, true, 201))
+      .mockReturnValueOnce(respond({ content: [{ id: 10, name: 'Beach clean-up', noOfParticipant: 15 }] }));
+    render(<App />);
+    await screen.findByRole('option', { name: 'Environment' });
+
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+
+    expect(await screen.findByText('15 volunteers needed')).toBeInTheDocument();
+    const [url, options] = fetch.mock.calls[1];
+    expect(url).toMatch(/\/profile\/events$/);
+    expect(options.headers.Authorization).toBe('Bearer token-123');
+    expect(JSON.parse(options.body)).toMatchObject({
+      name: 'Beach clean-up', categoryId: 3, fromDate: '2030-01-05T09:00', toDate: '2030-01-05T12:00', noOfParticipant: 15,
+    });
+  });
+
+  test('shows validation errors from the server', async () => {
+    fetch
+      .mockReturnValueOnce(respond([{ id: '3', category: 'Environment' }]))
+      .mockReturnValueOnce(respond({ message: 'fromDate: must be a future date' }, false, 400));
+    render(<App />);
+    await screen.findByRole('option', { name: 'Environment' });
+
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('fromDate: must be a future date');
+  });
+
+  test('sends the user to log in again when the session has expired', async () => {
+    fetch
+      .mockReturnValueOnce(respond([{ id: '3', category: 'Environment' }]))
+      .mockReturnValueOnce(respond({ message: 'Your session has expired, please log in again' }, false, 401));
+    render(<App />);
+    await screen.findByRole('option', { name: 'Environment' });
+
+    fillForm();
+    fireEvent.click(screen.getByRole('button', { name: /create event/i }));
+
+    expect(await screen.findByRole('heading', { name: /log in/i })).toBeInTheDocument();
+    expect(localStorage.getItem('volx.token')).toBeNull();
+  });
+});
