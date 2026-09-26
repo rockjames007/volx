@@ -12,7 +12,8 @@ import MyEventsPage from './components/MyEventsPage';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      {/* PUBLIC_URL is the sub-path the site is served from, e.g. /jointeer on GitHub Pages; empty locally. */}
+      <Router basename={process.env.PUBLIC_URL}>
         <Routes>
           <Route path="/" element={<MainPage />} />
           <Route path="/login" element={<LoginPage />} />
