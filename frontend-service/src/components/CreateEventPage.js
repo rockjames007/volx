@@ -16,7 +16,7 @@ const CreateEventPage = () => {
     toDate: '',
     noOfParticipant: '',
     area: '',
-    state: '',
+    postalCode: '',
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -53,7 +53,7 @@ const CreateEventPage = () => {
         fromDate: form.fromDate,
         toDate: form.toDate,
         noOfParticipant: form.noOfParticipant ? Number(form.noOfParticipant) : null,
-        address: { area: form.area, state: form.state },
+        address: { area: form.area, pincode: form.postalCode || null, country: 'Singapore' },
       });
       navigate(`/events/${created.id}`);
     } catch (err) {
@@ -103,12 +103,13 @@ const CreateEventPage = () => {
           </div>
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="area" className={labelClass}>Area / venue</label>
-              <input id="area" name="area" value={form.area} onChange={handleChange} className={inputClass} />
+              <label htmlFor="area" className={labelClass}>Venue</label>
+              <input id="area" name="area" value={form.area} onChange={handleChange} placeholder="e.g. East Coast Park, Area C" className={inputClass} />
             </div>
             <div>
-              <label htmlFor="state" className={labelClass}>State</label>
-              <input id="state" name="state" value={form.state} onChange={handleChange} className={inputClass} />
+              <label htmlFor="postalCode" className={labelClass}>Postal code</label>
+              <input id="postalCode" name="postalCode" value={form.postalCode} onChange={handleChange} inputMode="numeric"
+                     pattern="\d{6}" maxLength={6} title="Singapore postal codes have 6 digits" placeholder="e.g. 449876" className={inputClass} />
             </div>
           </div>
           <div className="mb-6">

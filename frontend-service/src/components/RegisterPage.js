@@ -48,7 +48,7 @@ function RegisterPage() {
   const fieldError = (name) => errors[name] && <p className="text-sm text-red-600 mt-1">{errors[name]}</p>;
 
   return (
-    <AuthShell title="Join Volx" subtitle="Create an account to start volunteering. It takes less than a minute.">
+    <AuthShell title="Become a JoinTeer" subtitle="Create an account to start volunteering. It takes less than a minute.">
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         <div>
           <label htmlFor="username" className={labelClass}>Username</label>

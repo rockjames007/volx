@@ -11,7 +11,7 @@ import Layout from './Layout';
 
 const STEPS = [
   { title: 'Pick your causes', text: 'Tell us what you care about — the environment, education, health, animals and more.' },
-  { title: 'Join an event', text: 'Browse upcoming opportunities near you and sign up in one click. No paperwork.' },
+  { title: 'Join an event', text: 'Browse upcoming opportunities near you and join in one click. No paperwork.' },
   { title: 'Show up and help', text: 'Meet the organizers and other volunteers, and make a real difference in your community.' },
 ];
 
@@ -79,7 +79,7 @@ const MainPage = () => {
   const query = search.trim().toLowerCase();
   const visibleEvents = events.filter((event) =>
     (!cause || String(event.category?.id) === cause)
-    && (!query || [event.name, event.description, event.category?.category, event.address?.area, event.address?.state]
+    && (!query || [event.name, event.description, event.category?.category, event.address?.area, event.address?.pincode]
       .some((field) => field?.toLowerCase().includes(query))));
 
   const openSpots = events.reduce((sum, event) => sum + (spotsLeft(event) || 0), 0);
@@ -89,11 +89,11 @@ const MainPage = () => {
     <Layout>
       <section className="bg-gradient-to-br from-violet-700 via-violet-600 to-indigo-600 text-white">
         <div className="max-w-6xl mx-auto px-4 py-14 md:py-20">
-          <p className="text-violet-200 font-semibold mb-3">{username ? `Welcome back, ${username}` : 'Volunteer with Volx'}</p>
+          <p className="text-violet-200 font-semibold mb-3">{username ? `Welcome back, ${username}` : 'Be a JoinTeer'}</p>
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight max-w-2xl">Give your time where it matters most.</h1>
           <p className="mt-4 text-lg text-violet-100 max-w-2xl">
-            Volx connects volunteers with local causes — clean-ups, tutoring, blood drives, relief work.
-            Find something that fits your interests and schedule, and sign up in one click.
+            JoinTeer connects volunteers with causes across Singapore — beach clean-ups, tutoring, blood drives,
+            befriending seniors. Find something that fits your interests and schedule, and join in one click.
           </p>
           <label className="mt-8 flex items-center gap-3 bg-white rounded-xl shadow-lg px-4 py-3 max-w-xl">
             <Icon name="search" className="w-5 h-5 text-slate-400" />
@@ -166,7 +166,7 @@ const MainPage = () => {
 
         {!username && (
           <section aria-labelledby="how-heading" className="bg-white border border-slate-200 rounded-3xl p-8 md:p-10">
-            <h2 id="how-heading" className="text-2xl font-bold mb-8 text-center">How Volx works</h2>
+            <h2 id="how-heading" className="text-2xl font-bold mb-8 text-center">How JoinTeer works</h2>
             <ol className="grid gap-8 md:grid-cols-3">
               {STEPS.map((step, index) => (
                 <li key={step.title} className="text-center">
@@ -177,7 +177,7 @@ const MainPage = () => {
               ))}
             </ol>
             <div className="text-center mt-8">
-              <Link to="/register" className="inline-block font-semibold text-white bg-violet-600 hover:bg-violet-700 px-6 py-3 rounded-xl">Become a volunteer</Link>
+              <Link to="/register" className="inline-block font-semibold text-white bg-violet-600 hover:bg-violet-700 px-6 py-3 rounded-xl">Become a JoinTeer</Link>
             </div>
           </section>
         )}

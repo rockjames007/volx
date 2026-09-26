@@ -4,9 +4,13 @@ import { useAuth } from '../lib/auth';
 import Icon from './Icon';
 
 export const Logo = ({ light = false }) => (
-  <Link to="/" className="flex items-center gap-2" aria-label="Volx home">
-    <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-500 text-white font-extrabold grid place-items-center shadow-sm">V</span>
-    <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Volx</span>
+  <Link to="/" className="flex items-center gap-2" aria-label="JoinTeer home">
+    <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-500 text-white font-extrabold grid place-items-center shadow-sm" aria-hidden="true">J</span>
+    {/* Two-tone wordmark so it reads "Join" + "Teer" (as in volunteer). */}
+    <span className="text-xl font-extrabold tracking-tight">
+      <span className={light ? 'text-white' : 'text-slate-900'}>Join</span>
+      <span className={light ? 'text-violet-200' : 'text-violet-600'}>Teer</span>
+    </span>
   </Link>
 );
 
@@ -84,7 +88,7 @@ function Header() {
 const Footer = () => (
   <footer className="border-t border-slate-200 bg-white">
     <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row gap-2 justify-between text-sm text-slate-500">
-      <span>Volx — connecting volunteers with the causes that need them.</span>
+      <span>JoinTeer — join in, volunteer, and help causes across Singapore.</span>
       <span>Every hour you give counts.</span>
     </div>
   </footer>

@@ -48,7 +48,7 @@ const LoginPage = () => {
         </button>
       </form>
       <p className="text-sm text-slate-600 mt-6">
-        New to Volx? <Link to="/register" state={location.state} className="font-semibold text-violet-700 hover:underline">Create an account</Link>
+        New to JoinTeer? <Link to="/register" state={location.state} className="font-semibold text-violet-700 hover:underline">Create an account</Link>
       </p>
     </AuthShell>
   );

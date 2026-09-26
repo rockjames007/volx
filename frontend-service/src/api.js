@@ -33,7 +33,7 @@ async function request(path, { method = 'GET', body } = {}) {
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (e) {
-    throw new Error('Cannot reach the Volx server. Is the API gateway running?');
+    throw new Error('Cannot reach the JoinTeer server. Is the API gateway running?');
   }
 
   const data = await response.json().catch(() => null);

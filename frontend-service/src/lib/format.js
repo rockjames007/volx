@@ -21,8 +21,12 @@ export const dateBadge = (from) => {
   };
 };
 
-export const formatPlace = (address) =>
-  [address?.area, address?.state].filter(Boolean).join(', ');
+// "East Coast Park, Singapore 449876". Older events may still carry a state instead of a postal code.
+export const formatPlace = (address) => {
+  if (!address) return '';
+  const postal = address.pincode ? `Singapore ${address.pincode}` : address.state;
+  return [address.area, postal].filter(Boolean).join(', ');
+};
 
 // Spots still open, or null when the organizer didn't set a limit.
 export const spotsLeft = (event) =>

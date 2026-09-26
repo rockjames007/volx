@@ -22,7 +22,7 @@ const event = (overrides) => ({
   noOfParticipant: 10,
   volunteersJoined: 4,
   createdBy: 'org',
-  address: { area: 'Marina Beach', state: 'Tamil Nadu' },
+  address: { area: 'East Coast Park', pincode: '449876' },
   ...overrides,
 });
 
@@ -69,11 +69,12 @@ describe('home page', () => {
     visit('/');
 
     expect(screen.getByRole('heading', { name: /give your time where it matters/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /jointeer home/i }).length).toBeGreaterThan(0);
     expect(await screen.findByText('Beach clean-up')).toBeInTheDocument();
     expect(screen.getByText('6 of 10 spots left')).toBeInTheDocument();
     expect(screen.getByText('Full')).toBeInTheDocument();
     expect(screen.getByText('volunteer spots open').previousSibling).toHaveTextContent('6');
-    expect(screen.getByRole('heading', { name: /how volx works/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /how jointeer works/i })).toBeInTheDocument();
   });
 
   test('filters by cause and by search text', async () => {
@@ -89,8 +90,8 @@ describe('home page', () => {
     expect(screen.getByText('Reading club')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /all causes/i }));
-    fireEvent.change(screen.getByPlaceholderText(/search by cause/i), { target: { value: 'marina' } });
-    expect(screen.getAllByText(/Marina Beach/).length).toBe(2);
+    fireEvent.change(screen.getByPlaceholderText(/search by cause/i), { target: { value: 'east coast' } });
+    expect(screen.getAllByText('East Coast Park, Singapore 449876').length).toBe(2);
     fireEvent.change(screen.getByPlaceholderText(/search by cause/i), { target: { value: 'zzz' } });
     expect(screen.getByText('No events match your search.')).toBeInTheDocument();
   });
@@ -131,7 +132,7 @@ describe('volunteering for an event', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'test123' } });
     fireEvent.click(screen.getByRole('button', { name: /log in/i }));
 
-    expect(await screen.findByRole('button', { name: /i'll volunteer/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /join as a volunteer/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Beach clean-up' })).toBeInTheDocument();
   });
 
@@ -145,13 +146,13 @@ describe('volunteering for an event', () => {
     });
     visit('/events/1');
 
-    fireEvent.click(await screen.findByRole('button', { name: /i'll volunteer/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /join as a volunteer/i }));
     expect(await screen.findByText(/you're going!/i)).toBeInTheDocument();
     expect(screen.getByText('5 of 10 spots left')).toBeInTheDocument();
     expect(callsTo('POST', '/profile/events/1/volunteers')[0][1].headers.Authorization).toBe('Bearer token-123');
 
     fireEvent.click(screen.getByRole('button', { name: /can't make it/i }));
-    expect(await screen.findByRole('button', { name: /i'll volunteer/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /join as a volunteer/i })).toBeInTheDocument();
     expect(screen.getByText('6 of 10 spots left')).toBeInTheDocument();
   });
 
@@ -164,7 +165,7 @@ describe('volunteering for an event', () => {
     });
     visit('/events/1');
 
-    fireEvent.click(await screen.findByRole('button', { name: /i'll volunteer/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /join as a volunteer/i }));
     expect(await screen.findByRole('alert')).toHaveTextContent('This event is full');
   });
 
@@ -176,7 +177,7 @@ describe('volunteering for an event', () => {
     });
     visit('/events/1');
     expect(await screen.findByText(/you're organizing this event/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /i'll volunteer/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /join as a volunteer/i })).not.toBeInTheDocument();
   });
 
   test('unknown events show a helpful not-found page', async () => {
@@ -263,6 +264,7 @@ describe('posting an event', () => {
     fireEvent.change(screen.getByLabelText(/starts/i), { target: { value: '2030-01-05T09:00' } });
     fireEvent.change(screen.getByLabelText(/ends/i), { target: { value: '2030-01-05T12:00' } });
     fireEvent.change(screen.getByLabelText(/volunteers needed/i), { target: { value: '15' } });
+    fireEvent.change(screen.getByLabelText(/postal code/i), { target: { value: '449876' } });
   };
 
   test('redirects to login when logged out', () => {
@@ -289,6 +291,7 @@ describe('posting an event', () => {
     expect(options.headers.Authorization).toBe('Bearer token-123');
     expect(JSON.parse(options.body)).toMatchObject({
       name: 'Beach clean-up', categoryId: 1, fromDate: '2030-01-05T09:00', toDate: '2030-01-05T12:00', noOfParticipant: 15,
+      address: { pincode: '449876', country: 'Singapore' },
     });
   });
 

@@ -30,7 +30,7 @@ function JoinPanel({ event, going, onJoin, onLeave, busy, error }) {
   } else if (going) {
     action = (
       <>
-        <p className="flex items-center gap-2 font-semibold text-violet-700 mb-3"><Icon name="check" /> You're going!</p>
+        <p className="flex items-center gap-2 font-semibold text-violet-700 mb-3"><Icon name="check" className="w-5 h-5 shrink-0" /> You're going! Thanks for being a JoinTeer.</p>
         <button onClick={onLeave} disabled={busy}
                 className="w-full font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 px-5 py-2.5 rounded-xl disabled:opacity-50">
           {busy ? 'Updating…' : "I can't make it"}
@@ -43,7 +43,7 @@ function JoinPanel({ event, going, onJoin, onLeave, busy, error }) {
     action = (
       <button onClick={onJoin} disabled={busy}
               className="w-full font-semibold text-white bg-violet-600 hover:bg-violet-700 px-5 py-3 rounded-xl disabled:opacity-50">
-        {busy ? 'Signing you up…' : "I'll volunteer"}
+        {busy ? 'Joining…' : 'Join as a volunteer'}
       </button>
     );
   }
