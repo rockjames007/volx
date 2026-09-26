@@ -1,7 +1,7 @@
-Volx: Empowering Civic Engagement Through Volunteer Opportunities
-=================================================================
+JoinTeer: Join In and Volunteer for Causes Across Singapore
+===========================================================
 
-Volx is a platform designed to address the challenges faced by both volunteers and organizers in the civic engagement space. By leveraging technology, Volx aims to enhance awareness, accessibility, and coordination in the volunteer ecosystem.
+JoinTeer (join + volunteer) is a platform designed to address the challenges faced by both volunteers and organizers in the civic engagement space. By leveraging technology, JoinTeer aims to enhance awareness, accessibility, and coordination in the volunteer ecosystem.
 
 Problem Statement
 -----------------
@@ -16,7 +16,7 @@ Problem Statement
 Solution Overview
 -----------------
 
-Volx offers several key features to address these challenges:
+JoinTeer offers several key features to address these challenges:
 
 - **Auto-Matching System:** Organizers can easily match the number of required volunteers with their interests aligned.
 - **Interest Highlighting:** Volunteers can highlight their interests, making it easier for organizers to find like-minded candidates.
@@ -28,7 +28,7 @@ Volx offers several key features to address these challenges:
 Getting Started
 ---------------
 
-Volx is a set of Spring Boot microservices behind an API gateway, plus a React frontend.
+JoinTeer is a set of Spring Boot microservices behind an API gateway, plus a React frontend.
 
 | Service | Folder | Port |
 |---|---|---|
@@ -37,6 +37,8 @@ Volx is a set of Spring Boot microservices behind an API gateway, plus a React f
 | Profiles & events | `profile-service` | 8001 |
 | API gateway (the only URL the frontend talks to) | `api-gateway` | 9000 |
 | Web app | `frontend-service` | 3000 |
+
+> The project was previously called Volx; internal identifiers such as the `volx` database, the `volx.*` config keys and the repository name keep that name.
 
 **Prerequisites:** Java 17+, Maven, Node 18+, and PostgreSQL with a database named `volx` (user/password `postgres`/`postgres`, see each service's `application.yaml`).
 
@@ -73,10 +75,12 @@ cd frontend-service && npm test
 | POST | `/auth/register` | `{username, email, password}` → `{jwt, username, expiresIn}` |
 | POST | `/auth/authorize` | `{username, password}`; `username` may be the email |
 | GET | `/users/me` | requires `Authorization: Bearer <jwt>` |
-| GET | `/profile/events?page=0&size=20&sort=fromDate` | active events, paged |
+| GET | `/profile/events?page=0&size=20&sort=fromDate` | active events that haven't finished, paged; each includes `volunteersJoined` |
 | GET | `/profile/events/{id}`, `/profile/events/categories/{categoryId}` | |
 | POST | `/profile/events` | requires `Authorization: Bearer <jwt>`; `{name, categoryId, fromDate, toDate, description?, noOfParticipant?, address?}` |
 | GET | `/profile/categories` | a starter set is created on first startup |
+| POST / DELETE | `/profile/events/{id}/volunteers` | join / leave an event (requires login); refuses full or finished events |
+| GET | `/profile/me/events` | `{joined, organizing}` for the logged-in user |
 | GET | `/profile/volunteers`, `/profile/volunteer/{id}` | |
 | GET | `/profile/organizers`, `/profile/organizers/{id}` | |
 

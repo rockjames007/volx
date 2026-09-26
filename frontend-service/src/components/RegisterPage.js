@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register, saveSession } from '../api';
-import './RegisterPage.css';
+import { register } from '../api';
+import { useAuth } from '../lib/auth';
+import AuthShell, { inputClass, labelClass } from './AuthShell';
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -35,63 +37,43 @@ function RegisterPage() {
 
     setSubmitting(true);
     try {
-      saveSession(await register(form.username, form.email, form.password));
-      navigate('/question');
+      signIn(await register(form.username, form.email, form.password));
+      navigate('/interests');
     } catch (err) {
       setErrors({ form: err.message });
-    } finally {
       setSubmitting(false);
     }
   };
 
+  const fieldError = (name) => errors[name] && <p className="text-sm text-red-600 mt-1">{errors[name]}</p>;
+
   return (
-    <div className="register-container">
-      <form onSubmit={handleSubmit}>
-        <h2>Create your account</h2>
+    <AuthShell title="Become a JoinTeer" subtitle="Create an account to start volunteering. It takes less than a minute.">
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
         <div>
-          <label htmlFor="username">Username:</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            autoComplete="username"
-            required
-          />
-          {errors.username && <span className="error">{errors.username}</span>}
+          <label htmlFor="username" className={labelClass}>Username</label>
+          <input id="username" name="username" value={form.username} onChange={handleChange} autoComplete="username" className={inputClass} />
+          {fieldError('username')}
         </div>
         <div>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-            required
-          />
-          {errors.email && <span className="error">{errors.email}</span>}
+          <label htmlFor="email" className={labelClass}>Email</label>
+          <input type="email" id="email" name="email" value={form.email} onChange={handleChange} autoComplete="email" className={inputClass} />
+          {fieldError('email')}
         </div>
         <div>
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            autoComplete="new-password"
-            required
-          />
-          {errors.password && <span className="error">{errors.password}</span>}
+          <label htmlFor="password" className={labelClass}>Password</label>
+          <input type="password" id="password" name="password" value={form.password} onChange={handleChange} autoComplete="new-password" className={inputClass} aria-describedby="password-hint" />
+          {fieldError('password') || <p id="password-hint" className="text-xs text-slate-500 mt-1">At least 6 characters.</p>}
         </div>
-        {errors.form && <p role="alert" className="error">{errors.form}</p>}
-        <button type="submit" disabled={submitting}>{submitting ? 'Creating account…' : 'Submit'}</button>
-        <p>Already have an account? <Link to="/login">Log in</Link></p>
+        {errors.form && <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{errors.form}</p>}
+        <button type="submit" disabled={submitting} className="w-full font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-3 rounded-xl disabled:opacity-50">
+          {submitting ? 'Creating account…' : 'Create account'}
+        </button>
       </form>
-    </div>
+      <p className="text-sm text-slate-600 mt-6">
+        Already have an account? <Link to="/login" className="font-semibold text-violet-700 hover:underline">Log in</Link>
+      </p>
+    </AuthShell>
   );
 }
 

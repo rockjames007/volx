@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Rejects unauthenticated write requests before the request body is bound and validated,
+ * Rejects unauthenticated write requests (and reads of the caller's own data under /profile/me) before the request body is bound and validated,
  * and exposes the caller's username to controllers as a request attribute.
  */
 @Component
@@ -23,8 +23,9 @@ public class RequireLoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if ("GET".equals(request.getMethod()) || "OPTIONS".equals(request.getMethod())
-                || request.getAttribute(USERNAME_ATTRIBUTE) != null) {
+        boolean publicRead = ("GET".equals(request.getMethod()) || "OPTIONS".equals(request.getMethod()))
+                && !request.getRequestURI().startsWith("/profile/me/");
+        if (publicRead || request.getAttribute(USERNAME_ATTRIBUTE) != null) {
             return true;
         }
         request.setAttribute(USERNAME_ATTRIBUTE, jwtVerifier.requireUsername(request.getHeader(HttpHeaders.AUTHORIZATION)));

@@ -2,7 +2,9 @@ package com.quad;
 
 import com.quad.entity.Category;
 import com.quad.entity.Event;
+import com.quad.repository.CategoryJpaRepository;
 import com.quad.repository.EventJpaRepository;
+import com.quad.repository.EventRegistrationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +29,18 @@ class ProfileControllerTests {
 	MockMvc mockMvc;
 	@Autowired
 	EventJpaRepository eventJpaRepository;
+	@Autowired
+	CategoryJpaRepository categoryJpaRepository;
+	@Autowired
+	EventRegistrationJpaRepository eventRegistrationJpaRepository;
 
 	@BeforeEach
 	void seed() {
+		eventRegistrationJpaRepository.deleteAll();
 		eventJpaRepository.deleteAll();
 		Category category = new Category();
 		category.setCategory("Environment");
+		category = categoryJpaRepository.save(category);
 		Event event = new Event();
 		event.setName("Beach clean-up");
 		event.setCategory(category);

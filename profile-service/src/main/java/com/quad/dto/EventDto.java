@@ -27,6 +27,8 @@ public class EventDto {
     private Boolean isActive;
     @JsonProperty("noOfParticipant")
     private Integer noOfParticipant;
+    @JsonProperty("volunteersJoined")
+    private Integer volunteersJoined;
     @JsonProperty("createdBy")
     private String createdBy;
     @JsonProperty("createdDate")
