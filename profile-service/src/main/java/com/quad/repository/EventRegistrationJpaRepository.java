@@ -17,4 +17,6 @@ public interface EventRegistrationJpaRepository extends JpaRepository<EventRegis
     Optional<EventRegistration> findByEventIdAndUsername(Long eventId, String username);
 
     List<EventRegistration> findByUsernameOrderByEventFromDateAsc(String username);
+
+    List<EventRegistration> findByEventIdOrderByCreatedDateAsc(Long eventId);
 }

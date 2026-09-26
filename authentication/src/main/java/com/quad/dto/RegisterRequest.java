@@ -1,5 +1,6 @@
 package com.quad.dto;
 
+import com.quad.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,5 +17,14 @@ public class RegisterRequest {
     @NotBlank
     @Size(min = 6, message = "must be at least 6 characters")
     private String password;
+    // Shown on volunteer certificates.
+    @NotBlank
+    @Size(max = 100)
+    private String fullName;
+    // Defaults to VOLUNTEER when omitted.
+    private Role role;
+    // Required for organizers.
+    @Size(max = 120)
+    private String organizationName;
 
 }

@@ -1,14 +1,18 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { clearSession, getUsername, SESSION_EVENT, saveSession } from '../api';
+import { clearSession, getProfile, getUsername, SESSION_EVENT, saveSession } from '../api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [username, setUsername] = useState(getUsername());
+  const [profile, setProfile] = useState(getProfile());
 
   // api.js clears the session when the server rejects the token; keep the UI in sync.
   useEffect(() => {
-    const sync = () => setUsername(getUsername());
+    const sync = () => {
+      setUsername(getUsername());
+      setProfile(getProfile());
+    };
     window.addEventListener(SESSION_EVENT, sync);
     return () => window.removeEventListener(SESSION_EVENT, sync);
   }, []);
@@ -17,7 +21,15 @@ export function AuthProvider({ children }) {
   const signOut = useCallback(() => clearSession(), []);
 
   return (
-    <AuthContext.Provider value={{ username, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      username,
+      role: profile.role,
+      isOrganizer: Boolean(username) && profile.role === 'ORGANIZER',
+      fullName: profile.fullName,
+      organizationName: profile.organizationName,
+      signIn,
+      signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );
