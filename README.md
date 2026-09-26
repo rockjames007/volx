@@ -42,7 +42,7 @@ JoinTeer is a set of Spring Boot microservices behind an API gateway, plus a Rea
 
 **Prerequisites:** Java 17+, Maven, Node 18+, and PostgreSQL with a database named `volx` (user/password `postgres`/`postgres`, see each service's `application.yaml`).
 
-1. **Clone the repository:** `git clone https://github.com/rockjames007/volx.git`
+1. **Clone the repository:** `git clone https://github.com/rockjames007/jointeer.git`
 2. **Start the backend**, each in its own terminal and in this order:
    ```
    cd eureka-server   && mvn spring-boot:run
@@ -95,7 +95,9 @@ org@gmail.com org123
 Volunteer:
 test@gmail.com test123
 
-**Demo Test Link:** https://rockjames007.github.io/volx/ 
+**Demo Test Link:** https://rockjames007.github.io/jointeer/ (the website only; it shows a "couldn't load events" message unless it can reach a running backend)
+
+**Publishing the demo:** every push to `main` builds `frontend-service` and publishes it to GitHub Pages via `.github/workflows/deploy-pages.yml`. The site path follows the repository name automatically. One-time setup: *Settings → Pages → Build and deployment → Source: GitHub Actions*. To point the published site at a hosted backend, set a repository variable `REACT_APP_API_URL` (*Settings → Secrets and variables → Actions → Variables*).
 
 License
 -------
