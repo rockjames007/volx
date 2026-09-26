@@ -11,5 +11,7 @@ public class AuthenticationResponse implements Serializable {
     private static final long serialVersionUID = -9126274639063345775L;
 
     private final String jwt;
+    private final String username;
+    private final long expiresIn;
 
 }

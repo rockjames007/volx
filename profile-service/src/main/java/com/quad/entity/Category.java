@@ -9,6 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

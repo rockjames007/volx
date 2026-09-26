@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 public class OrganizerDto {
     @JsonProperty("userId")
     private Long userId;
+    @JsonProperty("name")
+    private String name;
     @JsonProperty("email")
     private String email;
     @JsonProperty("phoneNumber")

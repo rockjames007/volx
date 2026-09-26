@@ -11,7 +11,13 @@ spring:
         - id: AUTHENTICATION-SERVICE
           uri: lb://AUTHENTICATION-SERVICE
           predicates:
-            - Path=/auth/**
+            - Path=/auth/**,/users/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: ${VOLX_ALLOWED_ORIGINS:http://localhost:3000}
+            allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
+            allowedHeaders: "*"
   application:
     name: api-gateway
 eureka:
