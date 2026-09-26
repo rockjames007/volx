@@ -23,4 +23,14 @@ public class EventRegistration {
     // The volunteer's full name at sign-up, for the organizer's attendee list.
     private String volunteerName;
     private LocalDateTime createdDate;
+
+    // Attendance, set by QR check-in or by the organizer. null = not recorded yet.
+    private Boolean attended;
+    // When the volunteer scanned the event's QR code (null if the organizer marked them present).
+    private LocalDateTime checkedInAt;
+    // Verified volunteering hours credited for this event.
+    private Double hours;
+    // Public code printed on the certificate so schools and employers can verify it.
+    @Column(unique = true, length = 36)
+    private String verificationCode;
 }

@@ -18,8 +18,10 @@ public class RequireLoginInterceptor implements HandlerInterceptor {
 
     public static final String CALLER_ATTRIBUTE = "volx.caller";
 
-    // Reads that are only for the logged-in user: their own events, and an organizer's attendee list.
-    private static final List<String> PRIVATE_READS = List.of("/profile/me/**", "/profile/events/*/volunteers");
+    // Reads that are only for the logged-in user: their own events and hours, and an organizer's attendee
+    // list and check-in code.
+    private static final List<String> PRIVATE_READS = List.of("/profile/me/**", "/profile/events/*/volunteers",
+            "/profile/events/*/check-in-code");
     private static final AntPathMatcher PATHS = new AntPathMatcher();
 
     private final JwtVerifier jwtVerifier;

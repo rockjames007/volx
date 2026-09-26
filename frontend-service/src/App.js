@@ -8,6 +8,10 @@ import InterestsPage from './components/InterestsPage';
 import CreateEventPage from './components/CreateEventPage';
 import EventDetailPage from './components/EventDetailPage';
 import MyEventsPage from './components/MyEventsPage';
+import AttendancePage from './components/AttendancePage';
+import CheckInPage from './components/CheckInPage';
+import MyHoursPage from './components/MyHoursPage';
+import CertificatePage from './components/CertificatePage';
 
 function App() {
   return (
@@ -23,7 +27,11 @@ function App() {
           <Route path="/events/new" element={<CreateEventPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/events/:id/edit" element={<CreateEventPage />} />
+          <Route path="/events/:id/attendance" element={<AttendancePage />} />
+          <Route path="/check-in/:id" element={<CheckInPage />} />
           <Route path="/me" element={<MyEventsPage />} />
+          <Route path="/me/hours" element={<MyHoursPage />} />
+          <Route path="/certificate/:code" element={<CertificatePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

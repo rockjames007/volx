@@ -107,7 +107,8 @@ public class EventServiceImpl implements EventService {
         Event event = requireOwnEvent(eventId, organizer);
         return eventRegistrationJpaRepository.findByEventIdOrderByCreatedDateAsc(event.getId()).stream()
                 .map(r -> new VolunteerSignupDto(r.getUsername(),
-                        r.getVolunteerName() != null ? r.getVolunteerName() : r.getUsername(), r.getCreatedDate()))
+                        r.getVolunteerName() != null ? r.getVolunteerName() : r.getUsername(), r.getCreatedDate(),
+                        r.getAttended(), r.getCheckedInAt(), r.getHours()))
                 .toList();
     }
 

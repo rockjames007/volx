@@ -5,6 +5,8 @@
 # Settings are read from a .env file next to this one; see .env.example.
 
 x-service-env: &service-env
+  # Event times are Singapore local time; check-in windows compare against the server clock.
+  TZ: ${TZ:-Asia/Singapore}
   EUREKA_URL: http://eureka:8999/eureka/
   # Register with the container IP so the gateway can reach services on the Docker network.
   EUREKA_INSTANCE_PREFERIPADDRESS: "true"

@@ -50,7 +50,7 @@ docker compose logs -f           # follow the logs; Ctrl+C to stop following
 docker compose down              # stop (add -v to also delete the database)
 ```
 
-The API gateway is then at `http://localhost:9000`. Data is kept in a Docker volume between restarts. Each service has its own database (`jointeer_auth`, `jointeer_profile`), created automatically on first start. For a public server, copy `.env.example` to `.env` and set a database password, a JWT secret and the allowed website origins.
+The API gateway is then at `http://localhost:9000`. Data is kept in a Docker volume between restarts. Each service has its own database (`jointeer_auth`, `jointeer_profile`), created automatically on first start. For a public server, copy `.env.example` to `.env` and set a database password, a JWT secret and the allowed website origins. Services run on Singapore time (`TZ`), which event times and check-in windows use.
 
 Then start the website (step 3 below) and open `http://localhost:3000`.
 
@@ -97,6 +97,11 @@ cd frontend-service && npm test
 | PUT | `/profile/events/{id}` | the event's organizer only; same body as POST |
 | POST | `/profile/events/{id}/cancel` | the event's organizer only; hides it from the listing and stops sign-ups |
 | GET | `/profile/events/{id}/volunteers` | the event's organizer only; who joined and when |
+| GET | `/profile/events/{id}/check-in-code` | the event's organizer only; the code in the check-in QR, and when check-in is open (1 hour before the start until 3 hours after the end) |
+| POST | `/profile/events/{id}/check-in` | `{code}`; checks the volunteer in (walk-ins are signed up if there's space) and credits the event's scheduled hours |
+| PUT | `/profile/events/{id}/volunteers/{username}/attendance` | the event's organizer only; `{attended, hours?}` to mark someone present or a no-show |
+| GET | `/profile/me/hours` | the logged-in volunteer's verified hours |
+| GET | `/profile/verify/{code}` | public; confirms a certificate's verification code |
 | GET | `/profile/categories` | a starter set is created on first startup |
 | POST / DELETE | `/profile/events/{id}/volunteers` | join / leave an event (requires login); refuses full or finished events |
 | GET | `/profile/me/events` | `{joined, organizing}` for the logged-in user |

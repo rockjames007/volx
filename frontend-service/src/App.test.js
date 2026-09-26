@@ -445,3 +445,113 @@ describe('account types and organizer tools', () => {
     expect(screen.queryByRole('button', { name: /join as a volunteer/i })).not.toBeInTheDocument();
   });
 });
+
+describe('check-in, verified hours and certificates', () => {
+  const volunteers = [
+    { username: 'alice', name: 'Alice Tan', joinedAt: '2030-01-01T10:00:00', attended: null, checkedInAt: null, hours: null },
+    { username: 'bob', name: 'Bob Lim', joinedAt: '2030-01-02T10:00:00', attended: true, checkedInAt: '2030-01-05T08:55:00', hours: 3 },
+  ];
+
+  test('organizer attendance page shows the check-in QR code and marks people present', async () => {
+    logInAsOrganizer('org');
+    mockApi({
+      'GET /profile/events/1/check-in-code': { code: 'K7Q2M9XP', opensAt: '2030-01-05T08:00:00', closesAt: '2030-01-05T15:00:00' },
+      'GET /profile/events/1/volunteers': volunteers,
+      'PUT /profile/events/1/volunteers/alice/attendance': { ...volunteers[0], attended: true, hours: 3 },
+      'GET /profile/events/1': event(),
+    });
+    visit('/events/1/attendance');
+
+    expect(await screen.findByLabelText('Check-in code')).toHaveTextContent('K7Q2M9XP');
+    expect(screen.getByTitle('Check-in QR code')).toBeInTheDocument();
+    expect(await screen.findByText('1 of 2 present')).toBeInTheDocument();
+    expect(within(screen.getByText('Bob Lim').closest('li')).getByText(/^Checked in/)).toBeInTheDocument();
+    expect(within(screen.getByText('Alice Tan').closest('li')).getByText('Not checked in')).toBeInTheDocument();
+
+    const aliceRow = screen.getByText('Alice Tan').closest('li');
+    fireEvent.click(within(aliceRow).getByRole('button', { name: /mark present/i }));
+
+    expect(await screen.findByText('2 of 2 present')).toBeInTheDocument();
+    expect(JSON.parse(callsTo('PUT', '/volunteers/alice/attendance')[0][1].body)).toEqual({ attended: true });
+  });
+
+  test('scanning the QR code while logged out asks to log in, then checks in', async () => {
+    mockApi({
+      'POST /auth/authorize': { jwt: 'token-123', username: 'test', role: 'VOLUNTEER', fullName: 'Test Volunteer' },
+      'POST /profile/events/1/check-in': { eventId: 1, eventName: 'Beach clean-up', hours: 3, verificationCode: 'abc-123', alreadyCheckedIn: false },
+    });
+    visit('/check-in/1?code=K7Q2M9XP');
+
+    fireEvent.change(await screen.findByLabelText(/email or username/i), { target: { value: 'test@gmail.com' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'test123' } });
+    fireEvent.click(screen.getByRole('button', { name: /log in/i }));
+
+    expect(await screen.findByRole('heading', { name: /you're checked in!/i })).toBeInTheDocument();
+    expect(screen.getByText('3 hours')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /view certificate/i })).toHaveAttribute('href', '/certificate/abc-123');
+    expect(JSON.parse(callsTo('POST', '/check-in')[0][1].body)).toEqual({ code: 'K7Q2M9XP' });
+    expect(callsTo('POST', '/check-in')).toHaveLength(1);
+  });
+
+  test('check-in explains why it failed', async () => {
+    logIn('test');
+    mockApi({ 'POST /profile/events/1/check-in': () => json({ message: 'Check-in opens an hour before the event starts' }, 409) });
+    visit('/check-in/1?code=K7Q2M9XP');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Check-in opens an hour before the event starts');
+  });
+
+  test('my hours shows the verified total and links to certificates', async () => {
+    logIn('test');
+    mockApi({
+      'GET /profile/me/hours': {
+        totalHours: 5.5,
+        entries: [
+          { eventId: 1, eventName: 'Beach clean-up', organizerName: 'Green SG', fromDate: inDays(-7, 9), toDate: inDays(-7, 12), hours: 3, verificationCode: 'abc-123' },
+          { eventId: 2, eventName: 'Reading club', organizerName: 'Tampines Library', fromDate: inDays(-14, 10), toDate: inDays(-14, 12), hours: 2.5, verificationCode: 'def-456' },
+        ],
+      },
+      'GET /profile/me/events': { joined: [], organizing: [] },
+    });
+    visit('/me/hours');
+
+    expect(await screen.findByText('5.5')).toBeInTheDocument();
+    expect(screen.getByText('verified hours')).toBeInTheDocument();
+    const certificateLinks = screen.getAllByRole('link', { name: 'Certificate' });
+    expect(certificateLinks.map((a) => a.getAttribute('href'))).toEqual(['/certificate/abc-123', '/certificate/def-456']);
+    expect(screen.getByRole('link', { name: 'My hours' })).toBeInTheDocument();
+  });
+
+  test('the public certificate shows the verified details', async () => {
+    mockApi({
+      'GET /profile/verify/abc-123': {
+        volunteerName: 'Test Volunteer', eventName: 'Beach clean-up', organizerName: 'Green SG', hours: 3,
+        fromDate: '2030-01-05T09:00:00', toDate: '2030-01-05T12:00:00', place: 'East Coast Park, Singapore 449876', verificationCode: 'abc-123',
+      },
+    });
+    visit('/certificate/abc-123');
+
+    expect(await screen.findByRole('heading', { name: 'Test Volunteer' })).toBeInTheDocument();
+    expect(screen.getByText('Beach clean-up')).toBeInTheDocument();
+    expect(screen.getByText('Green SG')).toBeInTheDocument();
+    expect(screen.getByText(/verified by jointeer/i)).toBeInTheDocument();
+    expect(screen.getByTitle('Verification QR code')).toBeInTheDocument();
+  });
+
+  test('an unknown certificate code is reported as not verified', async () => {
+    mockApi({ 'GET /profile/verify/fake': () => json({ message: 'No verified record matches this code' }, 404) });
+    visit('/certificate/fake');
+    expect(await screen.findByRole('heading', { name: /couldn't verify this certificate/i })).toBeInTheDocument();
+  });
+
+  test('organizers get the attendance link on their event and no "My hours" link', async () => {
+    logInAsOrganizer('org');
+    mockApi({
+      'GET /profile/events/1/volunteers': [],
+      'GET /profile/events/1': event(),
+      'GET /profile/me/events': { joined: [], organizing: [event()] },
+    });
+    visit('/events/1');
+    expect(await screen.findByRole('link', { name: /attendance & check-in qr/i })).toHaveAttribute('href', '/events/1/attendance');
+    expect(screen.queryByRole('link', { name: 'My hours' })).not.toBeInTheDocument();
+  });
+});

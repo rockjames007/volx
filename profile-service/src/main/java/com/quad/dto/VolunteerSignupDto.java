@@ -16,4 +16,10 @@ public class VolunteerSignupDto {
     private String name;
     @JsonProperty("joinedAt")
     private LocalDateTime joinedAt;
+    @JsonProperty("attended")
+    private Boolean attended;
+    @JsonProperty("checkedInAt")
+    private LocalDateTime checkedInAt;
+    @JsonProperty("hours")
+    private Double hours;
 }
