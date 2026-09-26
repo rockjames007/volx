@@ -1,24 +1,39 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { CalendarBlank, MagnifyingGlass, Plus, SealCheck } from '@phosphor-icons/react';
 import { useAuth } from '../lib/auth';
-import Icon from './Icon';
 
+// Text wordmark until the designed logo is ready: "Join" in Kopi, "Teer" in Sambal.
 export const Logo = ({ light = false }) => (
-  <Link to="/" className="flex items-center gap-2" aria-label="JoinTeer home">
-    <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-500 text-white font-extrabold grid place-items-center shadow-sm" aria-hidden="true">J</span>
-    {/* Two-tone wordmark so it reads "Join" + "Teer" (as in volunteer). */}
-    <span className="text-xl font-extrabold tracking-tight">
-      <span className={light ? 'text-white' : 'text-slate-900'}>Join</span>
-      <span className={light ? 'text-violet-200' : 'text-violet-600'}>Teer</span>
-    </span>
+  <Link to="/" className="font-display text-2xl font-semibold tracking-tight leading-none" aria-label="JoinTeer home">
+    <span className={light ? 'text-rice-50' : 'text-kopi-900'}>Join</span>
+    <span className={light ? 'text-kaya-300' : 'text-sambal-700'}>Teer</span>
   </Link>
 );
 
 const navClass = ({ isActive }) =>
-  `px-3 py-2 rounded-lg text-sm font-medium ${isActive ? 'text-violet-700 bg-violet-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`;
+  `px-3 py-2 rounded-lg font-semibold ${isActive ? 'text-sambal-700 bg-sambal-50' : 'text-kopi-700 hover:text-kopi-900 hover:bg-sand-100'}`;
 
-function Header() {
-  const { username, isOrganizer, organizationName, signOut } = useAuth();
+// The few places a person needs, by account type (see "Navigation" in the brand guide).
+function useDestinations() {
+  const { username, isOrganizer } = useAuth();
+  if (!username) return [{ to: '/', label: 'Find events', Icon: MagnifyingGlass, end: true }];
+  if (isOrganizer) {
+    return [
+      { to: '/me', label: 'My events', Icon: CalendarBlank, end: true },
+      { to: '/events/new', label: 'Post', Icon: Plus },
+      { to: '/', label: 'Find events', Icon: MagnifyingGlass, end: true },
+    ];
+  }
+  return [
+    { to: '/', label: 'Find events', Icon: MagnifyingGlass, end: true },
+    { to: '/me', label: 'My events', Icon: CalendarBlank, end: true },
+    { to: '/me/hours', label: 'My hours', Icon: SealCheck },
+  ];
+}
+
+function AccountMenu() {
+  const { username, isOrganizer, organizationName, fullName, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -28,88 +43,124 @@ function Header() {
     navigate('/');
   };
 
-  const links = (
-    <>
-      <NavLink to="/" end className={navClass} onClick={() => setOpen(false)}>Explore</NavLink>
-      {username && <NavLink to="/me" end className={navClass} onClick={() => setOpen(false)}>My events</NavLink>}
-      {username && !isOrganizer && <NavLink to="/me/hours" className={navClass} onClick={() => setOpen(false)}>My hours</NavLink>}
-    </>
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen(!open)} aria-expanded={open} aria-haspopup="menu"
+              className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-sand-100">
+        <span className="w-9 h-9 rounded-full bg-kaya-200 text-kopi-900 font-bold grid place-items-center uppercase" aria-hidden="true">{username[0]}</span>
+        <span className="hidden sm:block text-left leading-tight">
+          <span className="block font-semibold text-kopi-900">{fullName || username}</span>
+          {isOrganizer && organizationName && <span className="block text-sm text-kopi-600">{organizationName}</span>}
+        </span>
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 mt-2 w-56 rounded-xl border border-sand-200 bg-white shadow-lg p-2 z-30">
+          <p className="px-3 py-2 text-sm text-kopi-600">Signed in as @{username}</p>
+          <button role="menuitem" onClick={handleLogout} className="w-full text-left px-3 py-2 rounded-lg font-semibold text-kopi-900 hover:bg-sand-100">Log out</button>
+        </div>
+      )}
+    </div>
   );
+}
+
+function Header() {
+  const { username, isOrganizer } = useAuth();
+  const destinations = useDestinations();
 
   return (
-    <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 print:hidden">
+    <header className="sticky top-0 z-20 bg-rice-50/95 backdrop-blur border-b border-sand-200 print:hidden">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8">
           <Logo />
-          <nav className="hidden md:flex items-center gap-1" aria-label="Main">{links}</nav>
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main">
+            {destinations.filter((d) => d.to !== '/events/new').map((d) => (
+              <NavLink key={d.to} to={d.to} end={d.end} className={navClass}>{d.label}</NavLink>
+            ))}
+            {!username && <NavLink to="/register?type=organizer" className={navClass}>For organizers</NavLink>}
+          </nav>
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {isOrganizer && (
-            <Link to="/events/new" className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:text-violet-900 px-3 py-2">
-              <Icon name="plus" className="w-4 h-4" /> Post an event
+            <Link to="/events/new" className="hidden md:inline-flex items-center gap-2 font-semibold text-white bg-sambal-700 hover:bg-sambal-800 px-4 h-11 rounded-xl">
+              <Plus className="w-5 h-5" weight="bold" aria-hidden="true" /> Post an event
             </Link>
           )}
-          {!username && (
-            <Link to="/register?type=organizer" className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2">For organizers</Link>
-          )}
           {username ? (
-            <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
-              <span className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 font-bold grid place-items-center uppercase" aria-hidden="true">{username[0]}</span>
-              <span className="text-sm leading-tight">
-                <span className="block font-medium text-slate-700">{username}</span>
-                {isOrganizer && organizationName && <span className="block text-xs text-slate-500">{organizationName}</span>}
-              </span>
-              <button onClick={handleLogout} className="text-sm text-slate-500 hover:text-slate-900">Log out</button>
-            </div>
+            <AccountMenu />
           ) : (
             <>
-              <Link to="/login" className="text-sm font-medium text-slate-700 hover:text-slate-900 px-3 py-2">Log in</Link>
-              <Link to="/register" className="text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg shadow-sm">Sign up</Link>
+              <Link to="/login" className="font-semibold text-kopi-900 hover:bg-sand-100 px-3 h-11 inline-flex items-center rounded-xl">Log in</Link>
+              <Link to="/register" className="font-semibold text-white bg-sambal-700 hover:bg-sambal-800 px-4 h-11 inline-flex items-center rounded-xl">Sign up</Link>
             </>
           )}
         </div>
-
-        <button className="md:hidden p-2 -mr-2 text-slate-700" onClick={() => setOpen(!open)}
-                aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>
-          <Icon name={open ? 'close' : 'menu'} className="w-6 h-6" />
-        </button>
       </div>
-
-      {open && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 flex flex-col gap-1">
-          {links}
-          {isOrganizer && <NavLink to="/events/new" className={navClass} onClick={() => setOpen(false)}>Post an event</NavLink>}
-          {!username && <NavLink to="/register?type=organizer" className={navClass} onClick={() => setOpen(false)}>For organizers</NavLink>}
-          {username ? (
-            <button onClick={handleLogout} className="text-left px-3 py-2 text-sm text-slate-600">Log out ({username})</button>
-          ) : (
-            <div className="flex gap-2 pt-2">
-              <Link to="/login" onClick={() => setOpen(false)} className="flex-1 text-center text-sm font-medium border border-slate-300 rounded-lg py-2">Log in</Link>
-              <Link to="/register" onClick={() => setOpen(false)} className="flex-1 text-center text-sm font-semibold text-white bg-violet-600 rounded-lg py-2">Sign up</Link>
-            </div>
-          )}
-        </div>
-      )}
     </header>
   );
 }
 
+// Phone navigation for logged-in people: the main destinations, always one tap away.
+function TabBar() {
+  const { username } = useAuth();
+  const destinations = useDestinations();
+  if (!username) return null;
+  return (
+    <nav aria-label="Main" className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white border-t border-sand-200 print:hidden">
+      <ul className="grid" style={{ gridTemplateColumns: `repeat(${destinations.length}, minmax(0, 1fr))` }}>
+        {destinations.map(({ to, label, Icon, end }) => (
+          <li key={to}>
+            <NavLink to={to} end={end}
+                     className={({ isActive }) => `flex flex-col items-center gap-1 py-2.5 text-sm font-semibold ${isActive ? 'text-sambal-700' : 'text-kopi-600'}`}>
+              {({ isActive }) => (
+                <>
+                  <Icon className="w-6 h-6" weight={isActive ? 'fill' : 'regular'} aria-hidden="true" />
+                  {label}
+                </>
+              )}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 const Footer = () => (
-  <footer className="border-t border-slate-200 bg-white print:hidden">
-    <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row gap-2 justify-between text-sm text-slate-500">
-      <span>JoinTeer — join in, volunteer, and help causes across Singapore.</span>
-      <span>Every hour you give counts.</span>
+  <footer className="bg-kopi-900 text-rice-100 print:hidden">
+    <div className="max-w-6xl mx-auto px-4 py-10 grid gap-6 sm:grid-cols-3">
+      <div>
+        <Logo light />
+        <p className="mt-3 text-sm text-kopi-300">Join in and volunteer for causes across Singapore.</p>
+      </div>
+      <div className="text-sm">
+        <p className="font-semibold text-rice-50">Volunteers</p>
+        <ul className="mt-2 space-y-1.5 text-kopi-300">
+          <li><Link to="/" className="hover:text-rice-50">Find events</Link></li>
+          <li><Link to="/me/hours" className="hover:text-rice-50">My verified hours</Link></li>
+        </ul>
+      </div>
+      <div className="text-sm">
+        <p className="font-semibold text-rice-50">Organizers</p>
+        <ul className="mt-2 space-y-1.5 text-kopi-300">
+          <li><Link to="/register?type=organizer" className="hover:text-rice-50">Post your events</Link></li>
+          <li><Link to="/me" className="hover:text-rice-50">Manage attendance</Link></li>
+        </ul>
+      </div>
     </div>
   </footer>
 );
 
-const Layout = ({ children }) => (
-  <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-    <Header />
-    <main className="flex-1">{children}</main>
-    <Footer />
-  </div>
-);
+const Layout = ({ children }) => {
+  const { username } = useAuth();
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className={`flex-1 ${username ? 'pb-20 md:pb-0' : ''}`}>{children}</main>
+      <Footer />
+      <TabBar />
+    </div>
+  );
+};
 
 export default Layout;

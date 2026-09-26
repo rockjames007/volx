@@ -42,13 +42,13 @@ const LoginPage = () => {
           <label htmlFor="password" className={labelClass}>Password</label>
           <input type="password" id="password" name="password" value={form.password} onChange={handleChange} required autoComplete="current-password" className={inputClass} />
         </div>
-        {error && <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
-        <button type="submit" disabled={submitting} className="w-full font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-3 rounded-xl disabled:opacity-50">
+        {error && <p role="alert" className="text-sm text-chilli-700 bg-chilli-50 border border-chilli-100 rounded-lg px-3 py-2">{error}</p>}
+        <button type="submit" disabled={submitting} className="w-full font-semibold text-white bg-sambal-700 hover:bg-sambal-800 px-4 py-3 rounded-xl disabled:opacity-50">
           {submitting ? 'Logging in…' : 'Log In'}
         </button>
       </form>
-      <p className="text-sm text-slate-600 mt-6">
-        New to JoinTeer? <Link to="/register" state={location.state} className="font-semibold text-violet-700 hover:underline">Create an account</Link>
+      <p className="text-sm text-kopi-700 mt-6">
+        New to JoinTeer? <Link to="/register" state={location.state} className="font-semibold text-sambal-700 hover:underline">Create an account</Link>
       </p>
     </AuthShell>
   );

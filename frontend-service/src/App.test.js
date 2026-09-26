@@ -70,13 +70,13 @@ describe('home page', () => {
     });
     visit('/');
 
-    expect(screen.getByRole('heading', { name: /give your time where it matters/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /got a few hours this weekend/i })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /jointeer home/i }).length).toBeGreaterThan(0);
     expect(await screen.findByText('Beach clean-up')).toBeInTheDocument();
     expect(screen.getByText('6 of 10 spots left')).toBeInTheDocument();
     expect(screen.getByText('Full')).toBeInTheDocument();
-    expect(screen.getByText('volunteer spots open').previousSibling).toHaveTextContent('6');
-    expect(screen.getByRole('heading', { name: /how jointeer works/i })).toBeInTheDocument();
+    expect(screen.getByText(/2 events · 6 volunteer spots open/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /post your events on jointeer/i })).toHaveAttribute('href', '/register?type=organizer');
   });
 
   test('filters by cause and by search text', async () => {
@@ -91,17 +91,18 @@ describe('home page', () => {
     expect(screen.queryByText('Beach clean-up')).not.toBeInTheDocument();
     expect(screen.getByText('Reading club')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /all causes/i }));
-    fireEvent.change(screen.getByPlaceholderText(/search by cause/i), { target: { value: 'east coast' } });
+    // Tapping the selected cause again clears the filter.
+    fireEvent.click(screen.getByRole('button', { name: /education/i, pressed: true }));
+    fireEvent.change(screen.getByPlaceholderText(/search a place/i), { target: { value: 'east coast' } });
     expect(screen.getAllByText('East Coast Park, Singapore 449876').length).toBe(2);
-    fireEvent.change(screen.getByPlaceholderText(/search by cause/i), { target: { value: 'zzz' } });
-    expect(screen.getByText('No events match your search.')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText(/search a place/i), { target: { value: 'zzz' } });
+    expect(screen.getByText('No events match that yet.')).toBeInTheDocument();
   });
 
   test('shows a friendly message when events cannot be loaded', async () => {
     global.fetch = jest.fn(() => Promise.reject(new TypeError('Failed to fetch')));
     visit('/');
-    expect(await screen.findByText(/couldn't load events right now/i)).toBeInTheDocument();
+    expect(await screen.findByText(/we can't load events right now/i)).toBeInTheDocument();
   });
 
   test('recommends events matching the causes a user picked', async () => {
@@ -149,7 +150,7 @@ describe('volunteering for an event', () => {
     visit('/events/1');
 
     fireEvent.click(await screen.findByRole('button', { name: /join as a volunteer/i }));
-    expect(await screen.findByText(/you're going!/i)).toBeInTheDocument();
+    expect(await screen.findByText(/you're in\. see you there/i)).toBeInTheDocument();
     expect(screen.getByText('5 of 10 spots left')).toBeInTheDocument();
     expect(callsTo('POST', '/profile/events/1/volunteers')[0][1].headers.Authorization).toBe('Bearer token-123');
 
@@ -204,7 +205,7 @@ describe('accounts', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'test123' } });
     fireEvent.click(screen.getByRole('button', { name: /log in/i }));
 
-    expect(await screen.findByText(/welcome back, test/i)).toBeInTheDocument();
+    expect(await screen.findByText('Hi test,')).toBeInTheDocument();
     expect(localStorage.getItem('volx.token')).toBe('token-123');
     expect(JSON.parse(callsTo('POST', '/auth/authorize')[0][1].body)).toEqual({ username: 'test@gmail.com', password: 'test123' });
   });
@@ -238,7 +239,7 @@ describe('accounts', () => {
     fireEvent.click(await screen.findByRole('button', { name: /environment/i }));
     fireEvent.click(screen.getByRole('button', { name: /show me events \(1\)/i }));
 
-    expect(await screen.findByText(/welcome back, newbie/i)).toBeInTheDocument();
+    expect(await screen.findByText('Hi New,')).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('volx.interests.newbie'))).toEqual(['1']);
   });
 
@@ -431,6 +432,21 @@ describe('account types and organizer tools', () => {
     });
   });
 
+  test('the edit form waits for the event, so early typing is never overwritten', async () => {
+    logInAsOrganizer('org');
+    let finishLoading;
+    mockApi({
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/events/1': () => new Promise((resolve) => { finishLoading = () => resolve(json(event())); }),
+    });
+    visit('/events/1/edit');
+
+    expect(screen.getByText('Loading event…')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/event name/i)).not.toBeInTheDocument();
+    finishLoading();
+    expect(await screen.findByDisplayValue('Beach clean-up')).toBeInTheDocument();
+  });
+
   test('volunteers see a cancelled event clearly and cannot join it', async () => {
     logIn('test');
     mockApi({
@@ -518,7 +534,8 @@ describe('check-in, verified hours and certificates', () => {
     expect(screen.getByText('verified hours')).toBeInTheDocument();
     const certificateLinks = screen.getAllByRole('link', { name: 'Certificate' });
     expect(certificateLinks.map((a) => a.getAttribute('href'))).toEqual(['/certificate/abc-123', '/certificate/def-456']);
-    expect(screen.getByRole('link', { name: 'My hours' })).toBeInTheDocument();
+    // In the header and in the phone tab bar.
+    expect(screen.getAllByRole('link', { name: 'My hours' }).length).toBeGreaterThan(0);
   });
 
   test('the public certificate shows the verified details', async () => {

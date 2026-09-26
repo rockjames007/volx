@@ -30,29 +30,29 @@ const CheckInPage = () => {
   return (
     <Layout>
       <div className="max-w-md mx-auto px-4 py-16 text-center">
-        {!code && <p className="text-slate-600">This check-in link is missing its code. Please scan the QR code at the event again.</p>}
-        {code && !result && !error && <p className="text-slate-600">Checking you in…</p>}
+        {!code && <p className="text-kopi-700">This check-in link is missing its code. Please scan the QR code at the event again.</p>}
+        {code && !result && !error && <p className="text-kopi-700">Checking you in…</p>}
         {result && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
-            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-700 grid place-items-center">
+          <div className="bg-white border border-sand-200 rounded-xl p-8 shadow-sm">
+            <div className="w-14 h-14 mx-auto rounded-full bg-pandan-100 text-pandan-700 grid place-items-center">
               <Icon name="check" className="w-7 h-7" />
             </div>
-            <h1 className="text-2xl font-extrabold mt-4">{result.alreadyCheckedIn ? "You're already checked in" : "You're checked in!"}</h1>
-            <p className="text-slate-600 mt-2">
+            <h1 className="text-2xl font-semibold mt-4">{result.alreadyCheckedIn ? "You're already checked in" : "You're checked in!"}</h1>
+            <p className="text-kopi-700 mt-2">
               {result.eventName}: <strong>{result.hours} {result.hours === 1 ? 'hour' : 'hours'}</strong> added to your verified record.
             </p>
             <div className="flex flex-col gap-2 mt-6">
-              <Link to={`/certificate/${result.verificationCode}`} className="font-semibold text-white bg-violet-600 hover:bg-violet-700 px-5 py-2.5 rounded-xl">View certificate</Link>
-              <Link to="/me/hours" className="font-medium text-violet-700 hover:underline">See all my hours</Link>
+              <Link to={`/certificate/${result.verificationCode}`} className="font-semibold text-white bg-sambal-700 hover:bg-sambal-800 px-5 py-2.5 rounded-xl">View certificate</Link>
+              <Link to="/me/hours" className="font-medium text-sambal-700 hover:underline">See all my hours</Link>
             </div>
           </div>
         )}
         {error && (
-          <div className="bg-white border border-red-200 rounded-2xl p-8">
+          <div className="bg-white border border-chilli-100 rounded-xl p-8">
             <h1 className="text-xl font-bold">We couldn't check you in</h1>
-            <p role="alert" className="text-red-700 mt-2">{error}</p>
-            <p className="text-sm text-slate-500 mt-4">If this keeps happening, ask the organizer to mark you present.</p>
-            <Link to={`/events/${id}`} className="inline-block mt-4 font-medium text-violet-700 hover:underline">View the event</Link>
+            <p role="alert" className="text-chilli-700 mt-2">{error}</p>
+            <p className="text-sm text-kopi-600 mt-4">If this keeps happening, ask the organizer to mark you present.</p>
+            <Link to={`/events/${id}`} className="inline-block mt-4 font-medium text-sambal-700 hover:underline">View the event</Link>
           </div>
         )}
       </div>
