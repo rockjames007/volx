@@ -3,12 +3,11 @@ package com.quad.util;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
-// JwtUtil.java
-@Component
+// Unused: superseded by JwtService / JwtAuthenticationFilter. Safe to delete.
+@Deprecated
 public class JwtUtil {
     private String secret = "your_secret_key";
 

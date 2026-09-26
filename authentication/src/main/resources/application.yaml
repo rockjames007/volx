@@ -1,4 +1,6 @@
 server:
+  error:
+    include-message: always
   port: 8005
 spring:
   application:
@@ -10,13 +12,14 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 security:
   jwt:
-    secret-key: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
+    # Override in any shared/production environment via SECURITY_JWT_SECRET_KEY.
+    secret-key: ${SECURITY_JWT_SECRET_KEY:3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b}
     expiration-time: 3600000
 eureka:
   client:

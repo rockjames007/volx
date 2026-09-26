@@ -1,16 +1,19 @@
 package com.quad.entity;
 
+import lombok.Data;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Data
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private String description;
+    @Column(insertable = false, updatable = false)
     private Long categoryId;
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "categoryId", referencedColumnName = "id")

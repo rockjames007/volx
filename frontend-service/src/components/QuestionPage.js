@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './QuestionPage.css';
 
 function QuestionPage() {
+  const navigate = useNavigate();
   const questions = [
     "What motivated you to join our community?",
     "How do you prefer to contribute to volunteer activities?",
@@ -9,10 +11,10 @@ function QuestionPage() {
   ];
 
   return (
-    <div className="main-container">
+    <div className="question-container">
       <h1>Welcome to the Questions Page</h1>
       <h2>Questionnaire</h2>
-      <form>
+      <form onSubmit={(e) => { e.preventDefault(); navigate('/'); }}>
         {questions.map((question, index) => (
           <div key={index}>
             <label>{question}</label>

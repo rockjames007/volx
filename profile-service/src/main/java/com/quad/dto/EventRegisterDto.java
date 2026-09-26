@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 public class EventRegisterDto {
     @JsonProperty("eventId")
     private Long eventId;
-    @JsonProperty("userId")
+    @JsonProperty("volunteerId")
     private Long volunteerId;
-    @JsonProperty("userId")
+    @JsonProperty("categoryId")
     private Long categoryId;
-    @JsonProperty("userId")
+    @JsonProperty("createdDate")
     private LocalDateTime createdDate;
 }
