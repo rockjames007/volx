@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -84,7 +85,8 @@ class EventCreationTests {
 	void seedsDefaultCategories() throws Exception {
 		perform(get("/profile/categories"))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.length()").value(6))
+				.andExpect(jsonPath("$[*].category").value(containsInAnyOrder(
+						"Animals", "Community", "Disaster relief", "Education", "Environment", "Health")))
 				.andExpect(jsonPath("$[0].category").value("Animals"));
 	}
 

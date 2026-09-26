@@ -38,9 +38,9 @@ class ProfileControllerTests {
 	void seed() {
 		eventRegistrationJpaRepository.deleteAll();
 		eventJpaRepository.deleteAll();
-		Category category = new Category();
-		category.setCategory("Environment");
-		category = categoryJpaRepository.save(category);
+		// Reuse the seeded category: test classes share one database, so adding rows here would leak into other tests.
+		Category category = categoryJpaRepository.findAll().stream()
+				.filter(c -> "Environment".equals(c.getCategory())).findFirst().orElseThrow();
 		Event event = new Event();
 		event.setName("Beach clean-up");
 		event.setCategory(category);
