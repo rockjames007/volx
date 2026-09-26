@@ -3,6 +3,7 @@ package com.quad.controller;
 import com.quad.dto.CategoryDto;
 import com.quad.dto.CreateEventRequest;
 import com.quad.dto.EventDto;
+import com.quad.dto.MyEventsDto;
 import com.quad.dto.OrganizerDto;
 import com.quad.dto.VolunteerDto;
 import com.quad.service.EventService;
@@ -80,5 +81,22 @@ public class ProfileController {
     @GetMapping("/categories")
     public Mono<List<CategoryDto>> getCategories(){
         return Mono.just(eventService.getAllCategories());
+    }
+
+    @PostMapping("/events/{eventId}/volunteers")
+    public Mono<EventDto> joinEvent(@PathVariable("eventId") String eventId,
+                                    @RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username){
+        return Mono.just(eventService.joinEvent(eventId, username));
+    }
+
+    @DeleteMapping("/events/{eventId}/volunteers")
+    public Mono<EventDto> leaveEvent(@PathVariable("eventId") String eventId,
+                                     @RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username){
+        return Mono.just(eventService.leaveEvent(eventId, username));
+    }
+
+    @GetMapping("/me/events")
+    public Mono<MyEventsDto> getMyEvents(@RequestAttribute(RequireLoginInterceptor.USERNAME_ATTRIBUTE) String username){
+        return Mono.just(eventService.getMyEvents(username));
     }
 }

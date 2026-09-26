@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { createEvent, getCategories, getToken } from '../api';
+import { inputClass, labelClass } from './AuthShell';
+import Layout from './Layout';
 
-const inputClass = 'w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:border-purple-500';
-const labelClass = 'block text-gray-700 font-bold mb-2';
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const CreateEventPage = () => {
   }, []);
 
   if (!getToken()) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: '/events/new' }} />;
   }
 
   const handleChange = (e) => {
@@ -46,7 +46,7 @@ const CreateEventPage = () => {
     }
     setSubmitting(true);
     try {
-      await createEvent({
+      const created = await createEvent({
         name: form.name,
         description: form.description,
         categoryId: Number(form.categoryId),
@@ -55,10 +55,10 @@ const CreateEventPage = () => {
         noOfParticipant: form.noOfParticipant ? Number(form.noOfParticipant) : null,
         address: { area: form.area, state: form.state },
       });
-      navigate('/');
+      navigate(`/events/${created.id}`);
     } catch (err) {
       if (!getToken()) {
-        navigate('/login');
+        navigate('/login', { state: { from: '/events/new' } });
         return;
       }
       setError(err.message);
@@ -68,13 +68,15 @@ const CreateEventPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-8">
-      <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-xl mx-4">
-        <h2 className="text-3xl font-bold mb-6">Create an event</h2>
+    <Layout>
+      <div className="max-w-2xl mx-auto px-4 py-10">
+        <h1 className="text-3xl font-extrabold tracking-tight">Post an event</h1>
+        <p className="text-slate-600 mt-2 mb-8">Tell volunteers what you need help with. Clear details get more sign-ups.</p>
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="name" className={labelClass}>Event name</label>
-            <input id="name" name="name" value={form.name} onChange={handleChange} required maxLength={120} className={inputClass} />
+            <input id="name" name="name" placeholder="e.g. Saturday beach clean-up" value={form.name} onChange={handleChange} required maxLength={120} className={inputClass} />
           </div>
           <div className="mb-4">
             <label htmlFor="categoryId" className={labelClass}>Category</label>
@@ -87,7 +89,7 @@ const CreateEventPage = () => {
           </div>
           <div className="mb-4">
             <label htmlFor="description" className={labelClass}>Description</label>
-            <textarea id="description" name="description" value={form.description} onChange={handleChange} rows={3} maxLength={2000} className={inputClass} />
+            <textarea id="description" placeholder="What will volunteers do? What should they bring?" name="description" value={form.description} onChange={handleChange} rows={4} maxLength={2000} className={inputClass} />
           </div>
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
             <div>
@@ -111,18 +113,20 @@ const CreateEventPage = () => {
           </div>
           <div className="mb-6">
             <label htmlFor="noOfParticipant" className={labelClass}>Volunteers needed</label>
+            <p className="text-xs text-slate-500 -mt-1 mb-1.5">Leave empty if anyone can join.</p>
             <input type="number" min="1" id="noOfParticipant" name="noOfParticipant" value={form.noOfParticipant} onChange={handleChange} className={inputClass} />
           </div>
-          {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{error}</p>}
           <div className="flex items-center justify-between">
-            <Link to="/" className="text-purple-500 hover:underline">Cancel</Link>
-            <button type="submit" disabled={submitting} className="bg-purple-500 text-white font-bold py-2 px-6 rounded-md hover:bg-purple-600 disabled:opacity-50">
-              {submitting ? 'Creating…' : 'Create event'}
+            <Link to="/" className="text-sm text-slate-600 hover:text-slate-900">Cancel</Link>
+            <button type="submit" disabled={submitting} className="font-semibold text-white bg-violet-600 hover:bg-violet-700 px-6 py-3 rounded-xl disabled:opacity-50">
+              {submitting ? 'Publishing…' : 'Create event'}
             </button>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

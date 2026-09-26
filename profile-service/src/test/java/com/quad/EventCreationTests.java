@@ -2,6 +2,7 @@ package com.quad;
 
 import com.quad.repository.CategoryJpaRepository;
 import com.quad.repository.EventJpaRepository;
+import com.quad.repository.EventRegistrationJpaRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -38,6 +39,8 @@ class EventCreationTests {
 	@Autowired
 	EventJpaRepository eventJpaRepository;
 	@Autowired
+	EventRegistrationJpaRepository eventRegistrationJpaRepository;
+	@Autowired
 	CategoryJpaRepository categoryJpaRepository;
 	@Value("${security.jwt.secret-key}")
 	String secretKey;
@@ -46,6 +49,7 @@ class EventCreationTests {
 
 	@BeforeEach
 	void setUp() {
+		eventRegistrationJpaRepository.deleteAll();
 		eventJpaRepository.deleteAll();
 		categoryId = categoryJpaRepository.findAll().get(0).getId();
 	}

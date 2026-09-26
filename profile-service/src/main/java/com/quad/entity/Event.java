@@ -1,7 +1,8 @@
 package com.quad.entity;
 
-import lombok.Data;
 import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
 
@@ -12,10 +13,11 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    @Column(length = 2000)
     private String description;
     @Column(insertable = false, updatable = false)
     private Long categoryId;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "categoryId", referencedColumnName = "id")
     private Category category;
     @OneToOne(cascade = CascadeType.ALL)
@@ -27,5 +29,7 @@ public class Event {
     private Boolean isActive;
     private Integer noOfParticipant;
     private String createdBy;
+    @Formula("(select count(*) from event_registration r where r.event_id = id)")
+    private Integer volunteersJoined;
     private LocalDateTime createdDate;
 }

@@ -73,10 +73,12 @@ cd frontend-service && npm test
 | POST | `/auth/register` | `{username, email, password}` → `{jwt, username, expiresIn}` |
 | POST | `/auth/authorize` | `{username, password}`; `username` may be the email |
 | GET | `/users/me` | requires `Authorization: Bearer <jwt>` |
-| GET | `/profile/events?page=0&size=20&sort=fromDate` | active events, paged |
+| GET | `/profile/events?page=0&size=20&sort=fromDate` | active events that haven't finished, paged; each includes `volunteersJoined` |
 | GET | `/profile/events/{id}`, `/profile/events/categories/{categoryId}` | |
 | POST | `/profile/events` | requires `Authorization: Bearer <jwt>`; `{name, categoryId, fromDate, toDate, description?, noOfParticipant?, address?}` |
 | GET | `/profile/categories` | a starter set is created on first startup |
+| POST / DELETE | `/profile/events/{id}/volunteers` | join / leave an event (requires login); refuses full or finished events |
+| GET | `/profile/me/events` | `{joined, organizing}` for the logged-in user |
 | GET | `/profile/volunteers`, `/profile/volunteer/{id}` | |
 | GET | `/profile/organizers`, `/profile/organizers/{id}` | |
 
