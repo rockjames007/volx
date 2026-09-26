@@ -1,0 +1,80 @@
+# JoinTeer backend: PostgreSQL + service registry + auth + profile + API gateway.
+#   docker compose up -d --build     start everything (first build takes a few minutes)
+#   docker compose logs -f           follow the logs
+#   docker compose down              stop (add -v to also delete the database)
+# Settings are read from a .env file next to this one; see .env.example.
+
+x-service-env: &service-env
+  EUREKA_URL: http://eureka:8999/eureka/
+  # Register with the container IP so the gateway can reach services on the Docker network.
+  EUREKA_INSTANCE_PREFERIPADDRESS: "true"
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:-3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/create-databases.sql:/docker-entrypoint-initdb.d/create-databases.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"   # reachable from this machine only, e.g. for psql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  eureka:
+    build: ./eureka-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8999:8999"   # registry dashboard, this machine only
+
+  authentication:
+    build: ./authentication
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      <<: *service-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jointeer_auth
+      # Creates the demo accounts from the README; set to false for a real launch.
+      VOLX_DEMOUSERS_ENABLED: ${DEMO_USERS_ENABLED:-true}
+
+  profile:
+    build: ./profile-service
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    environment:
+      <<: *service-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jointeer_profile
+
+  gateway:
+    build: ./api-gateway
+    restart: unless-stopped
+    depends_on:
+      - eureka
+      - authentication
+      - profile
+    environment:
+      EUREKA_URL: http://eureka:8999/eureka/
+      # Websites allowed to call the API (comma-separated).
+      VOLX_ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,https://rockjames007.github.io}
+    ports:
+      - "9000:9000"             # the only public port: the website talks to this
+
+volumes:
+  db-data:
