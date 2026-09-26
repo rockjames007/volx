@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { register } from '../api';
 import { useAuth } from '../lib/auth';
 import AuthShell, { inputClass, labelClass } from './AuthShell';
@@ -12,6 +12,7 @@ const ACCOUNT_TYPES = [
 function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { signIn } = useAuth();
   const [form, setForm] = useState({
     role: searchParams.get('type') === 'organizer' ? 'ORGANIZER' : 'VOLUNTEER',
@@ -57,8 +58,9 @@ function RegisterPage() {
         role: form.role,
         organizationName: isOrganizer ? form.organizationName.trim() : null,
       }));
-      // Volunteers pick their causes; organizers go straight to posting their first event.
-      navigate(isOrganizer ? '/events/new' : '/interests');
+      // Back to what they were doing (e.g. a check-in QR code); otherwise volunteers pick their causes and
+      // organizers go straight to posting their first event.
+      navigate(location.state?.from || (isOrganizer ? '/events/new' : '/interests'));
     } catch (err) {
       setErrors({ form: err.message });
       setSubmitting(false);

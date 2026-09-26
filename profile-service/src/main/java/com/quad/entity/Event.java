@@ -31,6 +31,9 @@ public class Event {
     private String createdBy;
     // Shown as "Organized by …"; the organization's name at the time the event was posted.
     private String organizerName;
+    // Secret in the check-in QR code; only the organizer can see it.
+    @Column(length = 12)
+    private String checkInCode;
     @Formula("(select count(*) from event_registration r where r.event_id = id)")
     private Integer volunteersJoined;
     private LocalDateTime createdDate;

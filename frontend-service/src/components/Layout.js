@@ -31,12 +31,13 @@ function Header() {
   const links = (
     <>
       <NavLink to="/" end className={navClass} onClick={() => setOpen(false)}>Explore</NavLink>
-      {username && <NavLink to="/me" className={navClass} onClick={() => setOpen(false)}>My events</NavLink>}
+      {username && <NavLink to="/me" end className={navClass} onClick={() => setOpen(false)}>My events</NavLink>}
+      {username && !isOrganizer && <NavLink to="/me/hours" className={navClass} onClick={() => setOpen(false)}>My hours</NavLink>}
     </>
   );
 
   return (
-    <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200">
+    <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200 print:hidden">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Logo />
@@ -95,7 +96,7 @@ function Header() {
 }
 
 const Footer = () => (
-  <footer className="border-t border-slate-200 bg-white">
+  <footer className="border-t border-slate-200 bg-white print:hidden">
     <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row gap-2 justify-between text-sm text-slate-500">
       <span>JoinTeer — join in, volunteer, and help causes across Singapore.</span>
       <span>Every hour you give counts.</span>

@@ -84,3 +84,17 @@ export const updateEvent = (id, event) => request(`/profile/events/${id}`, { met
 export const cancelEvent = (id) => request(`/profile/events/${id}/cancel`, { method: 'POST' });
 
 export const getVolunteers = (id) => request(`/profile/events/${id}/volunteers`);
+
+export const getCheckInCode = (id) => request(`/profile/events/${id}/check-in-code`);
+
+export const checkIn = (id, code) => request(`/profile/events/${id}/check-in`, { method: 'POST', body: { code } });
+
+export const updateAttendance = (id, username, attendance) =>
+  request(`/profile/events/${id}/volunteers/${encodeURIComponent(username)}/attendance`, { method: 'PUT', body: attendance });
+
+export const getMyHours = () => request('/profile/me/hours');
+
+export const verifyCertificate = (code) => request(`/profile/verify/${encodeURIComponent(code)}`);
+
+// Absolute link to a page of this site, e.g. for QR codes (works under a sub-path like /jointeer).
+export const siteUrl = (path) => `${window.location.origin}${process.env.PUBLIC_URL || ''}${path}`;

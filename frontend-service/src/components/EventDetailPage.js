@@ -73,9 +73,14 @@ function OrganizerPanel({ event, onCancelled }) {
             </div>
           </div>
         ) : (
-          <div className="flex gap-2">
-            <Link to={`/events/${event.id}/edit`} className="flex-1 text-center text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-3 py-2.5 rounded-xl">Edit event</Link>
-            <button onClick={() => setConfirming(true)} className="flex-1 text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 px-3 py-2.5 rounded-xl">Cancel event</button>
+          <div className="space-y-2">
+            <Link to={`/events/${event.id}/attendance`} className="flex items-center justify-center gap-2 text-sm font-semibold text-violet-700 border border-violet-200 hover:bg-violet-50 px-3 py-2.5 rounded-xl">
+              Attendance &amp; check-in QR
+            </Link>
+            <div className="flex gap-2">
+              <Link to={`/events/${event.id}/edit`} className="flex-1 text-center text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-3 py-2.5 rounded-xl">Edit event</Link>
+              <button onClick={() => setConfirming(true)} className="flex-1 text-sm font-medium text-red-700 border border-red-200 hover:bg-red-50 px-3 py-2.5 rounded-xl">Cancel event</button>
+            </div>
           </div>
         )
       )}
