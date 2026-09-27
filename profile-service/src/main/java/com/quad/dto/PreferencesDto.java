@@ -14,6 +14,8 @@ public class PreferencesDto {
     private List<String> interests;
     @JsonProperty("area")
     private String area;
+    @JsonProperty("availability")
+    private List<String> availability;
     @JsonProperty("discoverable")
     private boolean discoverable;
     @JsonProperty("mutedOrganizers")

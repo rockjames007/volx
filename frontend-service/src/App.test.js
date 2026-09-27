@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import App from './App';
 
 const CATEGORIES = [
@@ -247,7 +247,7 @@ describe('accounts', () => {
 
     expect(await screen.findByText('Hi New,')).toBeInTheDocument();
     expect(JSON.parse(callsTo('PUT', '/profile/me/preferences')[0][1].body))
-      .toEqual({ interests: [1], area: 'Tampines', discoverable: true, mutedOrganizers: [] });
+      .toEqual({ interests: [1], area: 'Tampines', availability: [], discoverable: true, mutedOrganizers: [] });
     expect(JSON.parse(localStorage.getItem('volx.interests.newbie'))).toEqual(['1']);
   });
 
@@ -730,6 +730,97 @@ describe('finding and inviting volunteers', () => {
     fireEvent.click(screen.getByRole('button', { name: /save and show me events/i }));
     await screen.findByText(/Hi Full,/);
     expect(JSON.parse(callsTo('PUT', '/profile/me/preferences')[0][1].body).mutedOrganizers).toEqual([]);
+  });
+});
+
+describe('event planning: when volunteers are free', () => {
+  const planning = (overrides = {}) => {
+    const slots = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].flatMap((day) => ['MORNING', 'AFTERNOON', 'EVENING']
+      .map((part) => ({ slot: `${day}_${part}`, available: 0, turnout: 0, yourTurnout: 0, ...(overrides[`${day}_${part}`] || {}) })));
+    return { matchingVolunteers: 25, withAvailability: 20, slots };
+  };
+
+  test('volunteers mark when they are usually free', async () => {
+    logIn();
+    mockApi({
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/me/preferences': { ...NO_PREFERENCES, availability: ['SAT_MORNING'] },
+      'PUT /profile/me/preferences': (path, options) => json({ ...JSON.parse(options.body), mutedOrganizers: [] }),
+      'GET /profile/events': { content: [] },
+      'GET /profile/me/events': { joined: [], organizing: [] },
+      'GET /profile/me/invites': [],
+    });
+    visit('/interests');
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Saturday morning' })).toHaveAttribute('aria-pressed', 'true'));
+    fireEvent.click(screen.getByRole('button', { name: 'Saturday morning' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Wednesday evening' }));
+    fireEvent.click(screen.getByRole('button', { name: /save and show me events/i }));
+
+    await screen.findByText(/Hi Full,/);
+    expect(JSON.parse(callsTo('PUT', '/profile/me/preferences')[0][1].body).availability).toEqual(['WED_EVENING']);
+  });
+
+  test('organizers see the best time for their cause and can use it for the event', async () => {
+    logInAsOrganizer();
+    mockApi({
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/planning/best-times': planning({
+        SAT_MORNING: { available: 14, yourTurnout: 9 },
+        SUN_MORNING: { available: 8 },
+        WED_EVENING: { available: 3 },
+      }),
+    });
+    visit('/events/new');
+
+    expect(await screen.findByText(/Choose a category to see when volunteers/)).toBeInTheDocument();
+    await screen.findByRole('option', { name: 'Environment' });
+    fireEvent.change(screen.getByLabelText(/category/i), { target: { value: '1' } });
+
+    expect(await screen.findByText('Best time: Saturday morning.')).toBeInTheDocument();
+    expect(screen.getByText(/14 of the 20 people who care about Environment/)).toBeInTheDocument();
+    expect(screen.getByText(/Your past volunteers checked in most on/)).toBeInTheDocument();
+    expect(callsTo('GET', '/profile/planning/best-times')[0][0]).toContain('categoryId=1');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Saturday morning: 14 volunteers usually free/ }));
+    const starts = screen.getByLabelText(/starts/i).value;
+    expect(new Date(starts).getDay()).toBe(6);
+    expect(starts.slice(11)).toBe('09:00');
+    expect(screen.getByLabelText(/ends/i).value.slice(11)).toBe('12:00');
+    expect(new Date(starts) > new Date()).toBe(true);
+    expect(screen.getByText(/\(Saturday morning\)\. Adjust it if you need to\./)).toBeInTheDocument();
+
+    // Narrowing to an area asks again.
+    fireEvent.change(screen.getByLabelText('Volunteers near'), { target: { value: 'Tampines' } });
+    fireEvent.submit(screen.getByLabelText('Volunteers near').closest('form'));
+    await waitFor(() => expect(callsTo('GET', '/profile/planning/best-times').pop()[0]).toContain('area=Tampines'));
+  });
+
+  test('keeps the length of an event already entered', async () => {
+    logInAsOrganizer();
+    mockApi({ 'GET /profile/categories': CATEGORIES, 'GET /profile/planning/best-times': planning({ WED_EVENING: { available: 2 } }) });
+    visit('/events/new');
+
+    await screen.findByRole('option', { name: 'Environment' });
+    fireEvent.change(screen.getByLabelText(/category/i), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/starts/i), { target: { value: '2030-01-05T09:00' } });
+    fireEvent.change(screen.getByLabelText(/ends/i), { target: { value: '2030-01-05T13:30' } });
+    fireEvent.click(await screen.findByRole('button', { name: /^Wednesday evening: 2 volunteers/ }));
+
+    expect(screen.getByLabelText(/starts/i).value.slice(11)).toBe('19:00');
+    expect(screen.getByLabelText(/ends/i).value.slice(11)).toBe('23:30');
+  });
+
+  test('the form still works when planning figures are unavailable', async () => {
+    logInAsOrganizer();
+    mockApi({ 'GET /profile/categories': CATEGORIES });
+    visit('/events/new');
+
+    await screen.findByRole('option', { name: 'Environment' });
+    fireEvent.change(screen.getByLabelText(/category/i), { target: { value: '1' } });
+    await waitFor(() => expect(callsTo('GET', '/profile/planning/best-times').length).toBe(1));
+    await waitFor(() => expect(screen.queryByText(/When are volunteers free/)).not.toBeInTheDocument());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
 

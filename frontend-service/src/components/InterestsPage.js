@@ -4,6 +4,7 @@ import { getCategories, getPreferences, savePreferences } from '../api';
 import { useAuth } from '../lib/auth';
 import { CauseIcon } from '../lib/categories';
 import { getInterests, saveInterests } from '../lib/interests';
+import AvailabilityGrid from './AvailabilityGrid';
 import Icon from './Icon';
 import Layout from './Layout';
 
@@ -17,6 +18,7 @@ function InterestsPage() {
   const [categories, setCategories] = useState([]);
   const [selected, setSelected] = useState(() => new Set(getInterests(username)));
   const [area, setArea] = useState('');
+  const [availability, setAvailability] = useState(new Set());
   const [discoverable, setDiscoverable] = useState(false);
   const [muted, setMuted] = useState([]);
   const [loaded, setLoaded] = useState(false);
@@ -34,6 +36,7 @@ function InterestsPage() {
         // Causes picked before they were saved to the account (kept in this browser) carry over.
         if (preferences.interests.length) setSelected(new Set(preferences.interests));
         setArea(preferences.area || '');
+        setAvailability(new Set(preferences.availability || []));
         setDiscoverable(preferences.discoverable);
         setMuted(preferences.mutedOrganizers || []);
       })
@@ -62,6 +65,7 @@ function InterestsPage() {
       await savePreferences({
         interests: [...selected].map(Number),
         area,
+        availability: [...availability],
         discoverable,
         mutedOrganizers: muted.map((organizer) => organizer.username),
       });
@@ -102,6 +106,17 @@ function InterestsPage() {
             <p className="text-sm text-kopi-700 mt-1">Your neighbourhood, or anywhere that's easy for you to get to.</p>
             <input id="area" value={area} onChange={(e) => setArea(e.target.value)} maxLength={60}
                    placeholder="e.g. Tampines" className={`${inputClass} mt-3 max-w-sm`} />
+          </div>
+
+          <div className="mt-10">
+            <h2 className="font-semibold text-kopi-900 text-base">When are you usually free?</h2>
+            <p className="text-sm text-kopi-700 mt-1">
+              Tap the times that usually work for you. Organizers only ever see totals, like "18 volunteers are free on
+              Saturday mornings", so they can pick dates that suit more people.
+            </p>
+            <div className="mt-3 max-w-xl">
+              <AvailabilityGrid selected={availability} onChange={setAvailability} disabled={!loaded} />
+            </div>
           </div>
 
           <fieldset className="mt-10 rounded-xl border border-sand-200 bg-white p-5">

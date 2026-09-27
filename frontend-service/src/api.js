@@ -139,3 +139,12 @@ export const acceptInvite = (id) => request(`/profile/me/invites/${id}/accept`, 
 
 export const declineInvite = (id, muteOrganizer = false) =>
   request(`/profile/me/invites/${id}/decline`, { method: 'POST', body: { muteOrganizer } });
+
+// Organizers: for each weekly time slot, how many matching volunteers are usually free and how many turned up before.
+export const getBestTimes = ({ categoryId, area } = {}) => {
+  const params = new URLSearchParams();
+  if (categoryId) params.set('categoryId', categoryId);
+  if (area && area.trim()) params.set('area', area.trim());
+  const query = params.toString();
+  return request(`/profile/planning/best-times${query ? `?${query}` : ''}`);
+};

@@ -26,4 +26,5 @@ public interface EventRegistrationJpaRepository extends JpaRepository<EventRegis
 
     Optional<EventRegistration> findByVerificationCode(String verificationCode);
     List<EventRegistration> findByAttendedTrueAndUsernameIn(Collection<String> usernames);
+    List<EventRegistration> findByAttendedTrue();
 }

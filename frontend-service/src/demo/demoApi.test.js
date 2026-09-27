@@ -121,3 +121,21 @@ test('declining can mute an organizer, and preferences can allow them again', as
   await volunteer('/profile/me/preferences', { method: 'PUT', body: { ...preferences, mutedOrganizers: [] } });
   expect((await organizer('/profile/volunteers/search')).some((v) => v.username === 'test')).toBe(true);
 });
+
+test('organizers see when the sample volunteers are usually free', async () => {
+  const organizer = as('demo.org');
+  const all = await organizer('/profile/planning/best-times');
+  expect(all.matchingVolunteers).toBe(31);
+  expect(all.withAvailability).toBe(29);
+  const best = [...all.slots].sort((a, b) => b.available - a.available)[0];
+  expect(best).toMatchObject({ slot: 'SAT_MORNING', available: 21 });
+  expect(all.slots.reduce((sum, s) => sum + s.yourTurnout, 0)).toBe(14);
+  await expect(as('demo.test')('/profile/planning/best-times')).rejects.toThrow('Only organizer accounts can plan events');
+
+  // Volunteers' own availability is saved, and leaving it out keeps it.
+  const volunteer = as('demo.test');
+  const saved = await volunteer('/profile/me/preferences', { method: 'PUT', body: { interests: [], availability: ['FRI_EVENING', 'MON_MORNING', 'NOPE'], discoverable: true } });
+  expect(saved.availability).toEqual(['MON_MORNING', 'FRI_EVENING']);
+  const kept = await volunteer('/profile/me/preferences', { method: 'PUT', body: { interests: [], discoverable: true } });
+  expect(kept.availability).toEqual(['MON_MORNING', 'FRI_EVENING']);
+});

@@ -22,6 +22,7 @@ import com.quad.repository.VolunteerPreferenceRepository;
 import com.quad.security.Caller;
 import com.quad.service.EventService;
 import com.quad.service.InviteService;
+import com.quad.service.TimeSlots;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -92,6 +93,10 @@ public class InviteServiceImpl implements InviteService {
         preference.setName(volunteer.displayName());
         preference.setArea(request.getArea() == null || request.getArea().isBlank() ? null : request.getArea().trim());
         preference.setInterests(request.getInterests().stream().filter(known::contains).collect(Collectors.toCollection(HashSet::new)));
+        if (request.getAvailability() != null) {
+            preference.setAvailability(request.getAvailability().stream().filter(TimeSlots::isValid)
+                    .collect(Collectors.toCollection(HashSet::new)));
+        }
         preference.setDiscoverable(request.isDiscoverable());
         if (request.getMutedOrganizers() != null) {
             // Only ever unmute here; muting happens when declining an invitation.
@@ -106,7 +111,8 @@ public class InviteServiceImpl implements InviteService {
         List<PreferencesDto.MutedOrganizerDto> muted = preference.getMutedOrganizers().stream().sorted()
                 .map(organizer -> new PreferencesDto.MutedOrganizerDto(organizer, organizerName(organizer)))
                 .toList();
-        return new PreferencesDto(interests, preference.getArea(), preference.isDiscoverable(), muted);
+        List<String> availability = TimeSlots.ALL.stream().filter(preference.getAvailability()::contains).toList();
+        return new PreferencesDto(interests, preference.getArea(), availability, preference.isDiscoverable(), muted);
     }
 
     private String organizerName(String organizer) {
