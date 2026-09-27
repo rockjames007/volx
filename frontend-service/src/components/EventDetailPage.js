@@ -73,6 +73,9 @@ function OrganizerPanel({ event, onCancelled }) {
           </div>
         ) : (
           <div className="space-y-2">
+            <Link to={`/events/${event.id}/invite`} className="flex items-center justify-center gap-2 text-sm font-semibold text-sambal-700 border border-sambal-200 hover:bg-sambal-50 px-3 py-2.5 rounded-xl">
+              Invite volunteers
+            </Link>
             <Link to={`/events/${event.id}/attendance`} className="flex items-center justify-center gap-2 text-sm font-semibold text-sambal-700 border border-sambal-200 hover:bg-sambal-50 px-3 py-2.5 rounded-xl">
               Attendance &amp; check-in QR
             </Link>

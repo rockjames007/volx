@@ -105,6 +105,11 @@ cd frontend-service && npm test
 | GET | `/profile/categories` | a starter set is created on first startup |
 | POST / DELETE | `/profile/events/{id}/volunteers` | join / leave an event (requires login); refuses full or finished events |
 | GET | `/profile/me/events` | `{joined, organizing}` for the logged-in user |
+| GET / PUT | `/profile/me/preferences` | a volunteer's causes, area and whether organizers may invite them (off until they opt in) |
+| GET | `/profile/volunteers/search?eventId=&categoryId=&area=&experienced=` | organizers: volunteers who opted in, people who've helped you first; no contact details |
+| POST / GET | `/profile/events/{id}/invites` | organizers: invite volunteers to your upcoming event (limited per event) / see who you invited |
+| GET | `/profile/me/invites` | a volunteer's pending invitations |
+| POST | `/profile/me/invites/{id}/accept`, `/profile/me/invites/{id}/decline` | accept (signs you up) or decline; `{"muteOrganizer": true}` stops invitations from that organizer |
 | GET | `/profile/volunteers`, `/profile/volunteer/{id}` | |
 | GET | `/profile/organizers`, `/profile/organizers/{id}` | |
 

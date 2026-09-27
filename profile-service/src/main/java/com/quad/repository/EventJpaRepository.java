@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EventJpaRepository extends JpaRepository<Event,Long> {
@@ -25,4 +26,5 @@ public interface EventJpaRepository extends JpaRepository<Event,Long> {
                                        Pageable pageable);
 
     List<Event> findByCreatedByOrderByFromDateAsc(String createdBy);
+    Optional<Event> findFirstByCreatedByOrderByCreatedDateDesc(String createdBy);
 }

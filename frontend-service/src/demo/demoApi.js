@@ -1,10 +1,10 @@
 // A stand-in for the JoinTeer backend, used by the GitHub Pages demo (REACT_APP_DEMO=true). It answers the same
 // requests as the real API from sample data kept in this browser, following the same rules, so every screen works
 // without a server. Changes stay in this browser and the sample data starts afresh each day.
-import { CATEGORIES, DEMO_ACCOUNTS, SAMPLES, VOLUNTEER_NAMES } from './demoData';
+import { AREAS, CATEGORIES, DEMO_ACCOUNTS, SAMPLES, VOLUNTEER_NAMES } from './demoData';
 
 const STORAGE_KEY = 'jointeer.demo';
-const VERSION = 1;
+const VERSION = 2;
 const HOUR = 60 * 60 * 1000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -77,8 +77,21 @@ export function seed(now = new Date()) {
     });
   });
 
+  // The fictional volunteers (and the demo volunteer) have opted in to invitations, so organizers can find them.
+  const preferences = {};
+  const prefer = (username, name, area, interests) => {
+    preferences[username] = { username, name, area, interests, discoverable: true, mutedOrganizers: [] };
+  };
+  VOLUNTEER_NAMES.forEach((name, i) => {
+    prefer(usernameOf(name), name, AREAS[i % AREAS.length], [categories[i % 6].id, categories[(i + 2) % 6].id]);
+  });
+  prefer('test', 'Test Volunteer', 'Ang Mo Kio', [categoryByName.Community.id, categoryByName.Environment.id]);
+
   return {
     version: VERSION,
+    preferences,
+    invites: [],
+    nextInviteId: 1,
     seededOn: todayKey(),
     nextEventId: events.length + 1,
     users: DEMO_ACCOUNTS.map((account) => ({ ...account })),
@@ -221,6 +234,64 @@ function applyDetails(db, event, body) {
 
 const sortByStart = (a, b) => parse(a.fromDate) - parse(b.fromDate);
 
+const INVITES_PER_SPOT = 3;
+const MIN_INVITES = 10;
+const INVITES_WITHOUT_LIMIT = 50;
+
+const inviteLimit = (event) =>
+  (event.noOfParticipant == null ? INVITES_WITHOUT_LIMIT : Math.max(MIN_INVITES, event.noOfParticipant * INVITES_PER_SPOT));
+
+// "Priya Nair" -> "Priya N."
+const shortName = (name) => {
+  const parts = name.trim().split(/\s+/);
+  return parts.length < 2 ? name : `${parts[0]} ${parts[parts.length - 1][0]}.`;
+};
+
+function inviteStatus(invite, joined) {
+  if (joined.has(invite.username)) return 'JOINED';
+  return { PENDING: 'INVITED', DECLINED: 'DECLINED', ACCEPTED: 'LEFT' }[invite.status];
+}
+
+function statusesFor(db, event) {
+  const joined = new Set(registrationsFor(db, event.id).map((r) => r.username));
+  const statuses = {};
+  db.invites.filter((i) => i.eventId === event.id).forEach((i) => { statuses[i.username] = inviteStatus(i, joined); });
+  joined.forEach((username) => { statuses[username] = 'JOINED'; });
+  return statuses;
+}
+
+function preferencesDto(db, preference) {
+  const organizerName = (organizer) => {
+    const posted = db.events.filter((e) => e.createdBy === organizer).sort((a, b) => parse(b.createdDate) - parse(a.createdDate));
+    return posted[0]?.organizerName || organizer;
+  };
+  return {
+    interests: [...(preference?.interests || [])].sort((a, b) => Number(a) - Number(b)),
+    area: preference?.area || null,
+    discoverable: Boolean(preference?.discoverable),
+    mutedOrganizers: [...(preference?.mutedOrganizers || [])].sort().map((username) => ({ username, name: organizerName(username) })),
+  };
+}
+
+function requireOwnInvite(db, id, user) {
+  const invite = db.invites.find((i) => String(i.id) === String(id) && i.username === user.username);
+  if (!invite) throw new ApiError(404, 'Invitation not found');
+  return invite;
+}
+
+function joinEventAs(db, event, user) {
+  if (event.createdBy === user.username) throw new ApiError(409, "You're organizing this event");
+  if (!event.isActive || endOf(event) < new Date()) throw new ApiError(409, 'This event is no longer taking volunteers');
+  const signups = registrationsFor(db, event.id);
+  if (signups.some((r) => r.username === user.username)) throw new ApiError(409, 'You have already joined this event');
+  if (event.noOfParticipant != null && signups.length >= event.noOfParticipant) throw new ApiError(409, 'This event is full');
+  db.registrations.push({
+    eventId: event.id, username: user.username, volunteerName: displayName(user), createdDate: toLocalIso(new Date()),
+    attended: null, checkedInAt: null, hours: null, verificationCode: null,
+  });
+  return toDto(db, event);
+}
+
 // ---- Routes ----
 
 const routes = [
@@ -311,19 +382,7 @@ const routes = [
       .map(signupDto);
   }, true],
 
-  ['POST', /^\/profile\/events\/(\d+)\/volunteers$/, (db, { params, user }) => {
-    const event = requireEvent(db, params[0]);
-    if (event.createdBy === user.username) throw new ApiError(409, "You're organizing this event");
-    if (!event.isActive || endOf(event) < new Date()) throw new ApiError(409, 'This event is no longer taking volunteers');
-    const signups = registrationsFor(db, event.id);
-    if (signups.some((r) => r.username === user.username)) throw new ApiError(409, 'You have already joined this event');
-    if (event.noOfParticipant != null && signups.length >= event.noOfParticipant) throw new ApiError(409, 'This event is full');
-    db.registrations.push({
-      eventId: event.id, username: user.username, volunteerName: displayName(user), createdDate: toLocalIso(new Date()),
-      attended: null, checkedInAt: null, hours: null, verificationCode: null,
-    });
-    return toDto(db, event);
-  }, true],
+  ['POST', /^\/profile\/events\/(\d+)\/volunteers$/, (db, { params, user }) => joinEventAs(db, requireEvent(db, params[0]), user), true],
 
   ['DELETE', /^\/profile\/events\/(\d+)\/volunteers$/, (db, { params, user }) => {
     const event = requireEvent(db, params[0]);
@@ -404,6 +463,131 @@ const routes = [
       .map((r) => toEntry(db, r))
       .sort((a, b) => parse(b.fromDate) - parse(a.fromDate));
     return { totalHours: entries.reduce((sum, e) => sum + (e.hours || 0), 0), entries };
+  }, true],
+
+  ['GET', /^\/profile\/me\/preferences$/, (db, { user }) => preferencesDto(db, db.preferences[user.username]), true],
+
+  ['PUT', /^\/profile\/me\/preferences$/, (db, { user, body }) => {
+    if (user.role === 'ORGANIZER') throw new ApiError(403, 'Preferences are for volunteer accounts');
+    if (!Array.isArray(body?.interests)) throw new ApiError(400, 'interests: must not be null');
+    const known = new Set(db.categories.map((c) => String(c.id)));
+    const current = db.preferences[user.username] || { username: user.username, mutedOrganizers: [] };
+    const area = String(body.area || '').trim().slice(0, 60);
+    db.preferences[user.username] = {
+      ...current,
+      name: displayName(user),
+      area: area || null,
+      interests: [...new Set(body.interests.map(String).filter((id) => known.has(id)))],
+      discoverable: Boolean(body.discoverable),
+      // Only ever unmute here; muting happens when declining an invitation.
+      mutedOrganizers: Array.isArray(body.mutedOrganizers)
+        ? current.mutedOrganizers.filter((o) => body.mutedOrganizers.includes(o))
+        : current.mutedOrganizers,
+    };
+    return preferencesDto(db, db.preferences[user.username]);
+  }, true],
+
+  ['GET', /^\/profile\/volunteers\/search$/, (db, { user, query }) => {
+    if (user.role !== 'ORGANIZER') throw new ApiError(403, 'Only organizer accounts can find volunteers');
+    const eventId = query.get('eventId');
+    const event = eventId ? requireOwnEvent(db, eventId, user) : null;
+    const categoryId = query.get('categoryId');
+    const wantedArea = (query.get('area') || '').trim().toLowerCase();
+    const experienced = query.get('experienced') === 'true';
+    const statuses = event ? statusesFor(db, event) : {};
+    const names = Object.fromEntries(db.categories.map((c) => [String(c.id), c.category]));
+    const matches = [];
+    Object.values(db.preferences)
+      .filter((p) => p.discoverable && p.username !== user.username && !p.mutedOrganizers.includes(user.username))
+      .forEach((p) => {
+        const record = db.registrations.filter((r) => r.username === p.username && r.attended === true)
+          .map((r) => ({ ...r, event: requireEvent(db, r.eventId) }));
+        const causeEvents = categoryId ? record.filter((r) => String(r.event.category?.id) === categoryId).length : record.length;
+        const interested = !categoryId || p.interests.includes(categoryId);
+        if (!interested && causeEvents === 0) return;
+        if (experienced && causeEvents === 0) return;
+        if (wantedArea && !(p.area || '').toLowerCase().includes(wantedArea)) return;
+        matches.push({
+          username: p.username,
+          name: shortName(p.name || p.username),
+          area: p.area,
+          interests: p.interests.map((id) => names[id]).filter(Boolean).sort(),
+          verifiedHours: record.reduce((sum, r) => sum + (r.hours || 0), 0),
+          eventsAttended: record.length,
+          causeEvents,
+          eventsWithYou: record.filter((r) => r.event.createdBy === user.username).length,
+          status: statuses[p.username] || null,
+        });
+      });
+    // People who've helped you before first, then the most experienced in this cause.
+    matches.sort((a, b) => b.eventsWithYou - a.eventsWithYou || b.causeEvents - a.causeEvents
+      || b.verifiedHours - a.verifiedHours || a.name.localeCompare(b.name));
+    return matches.slice(0, 100);
+  }, true],
+
+  ['POST', /^\/profile\/events\/(\d+)\/invites$/, (db, { params, user, body }) => {
+    const event = requireOwnEvent(db, params[0], user);
+    if (!event.isActive || endOf(event) < new Date()) throw new ApiError(409, 'You can only invite people to upcoming events');
+    const usernames = [...new Set(Array.isArray(body?.usernames) ? body.usernames : [])];
+    if (usernames.length === 0) throw new ApiError(400, 'usernames: must not be empty');
+    let remaining = inviteLimit(event) - db.invites.filter((i) => i.eventId === event.id).length;
+    const message = String(body.message || '').trim().slice(0, 500) || null;
+    let invited = 0;
+    usernames.forEach((username) => {
+      const p = db.preferences[username];
+      if (!p || !p.discoverable || p.mutedOrganizers.includes(user.username) || remaining <= 0
+        || db.invites.some((i) => i.eventId === event.id && i.username === username)
+        || registrationsFor(db, event.id).some((r) => r.username === username)) return;
+      db.invites.push({
+        id: db.nextInviteId++, eventId: event.id, username, volunteerName: p.name, invitedBy: user.username,
+        message, status: 'PENDING', createdDate: toLocalIso(new Date()), respondedDate: null,
+      });
+      invited += 1;
+      remaining -= 1;
+    });
+    return { invited, skipped: usernames.length - invited, remaining: Math.max(0, remaining) };
+  }, true],
+
+  ['GET', /^\/profile\/events\/(\d+)\/invites$/, (db, { params, user }) => {
+    const event = requireOwnEvent(db, params[0], user);
+    const joined = new Set(registrationsFor(db, event.id).map((r) => r.username));
+    return db.invites.filter((i) => i.eventId === event.id)
+      .sort((a, b) => parse(b.createdDate) - parse(a.createdDate))
+      .map((i) => ({ username: i.username, name: i.volunteerName || i.username, status: inviteStatus(i, joined), createdDate: i.createdDate }));
+  }, true],
+
+  ['GET', /^\/profile\/me\/invites$/, (db, { user }) => {
+    const now = new Date();
+    return db.invites
+      .filter((i) => i.username === user.username && i.status === 'PENDING')
+      .map((i) => ({ invite: i, event: requireEvent(db, i.eventId) }))
+      .filter(({ event }) => event.isActive && endOf(event) > now
+        && !registrationsFor(db, event.id).some((r) => r.username === user.username))
+      .sort((a, b) => parse(b.invite.createdDate) - parse(a.invite.createdDate))
+      .map(({ invite, event }) => ({
+        id: invite.id, event: toDto(db, event), organizerName: event.organizerName, message: invite.message, createdDate: invite.createdDate,
+      }));
+  }, true],
+
+  ['POST', /^\/profile\/me\/invites\/(\d+)\/accept$/, (db, { params, user }) => {
+    const invite = requireOwnInvite(db, params[0], user);
+    const joined = joinEventAs(db, requireEvent(db, invite.eventId), user);
+    invite.status = 'ACCEPTED';
+    invite.respondedDate = toLocalIso(new Date());
+    return joined;
+  }, true],
+
+  ['POST', /^\/profile\/me\/invites\/(\d+)\/decline$/, (db, { params, user, body }) => {
+    const invite = requireOwnInvite(db, params[0], user);
+    invite.status = 'DECLINED';
+    invite.respondedDate = toLocalIso(new Date());
+    if (body?.muteOrganizer) {
+      const current = db.preferences[user.username]
+        || { username: user.username, name: displayName(user), area: null, interests: [], discoverable: false, mutedOrganizers: [] };
+      if (!current.mutedOrganizers.includes(invite.invitedBy)) current.mutedOrganizers.push(invite.invitedBy);
+      db.preferences[user.username] = current;
+    }
+    return null;
   }, true],
 
   ['GET', /^\/profile\/verify\/([^/]+)$/, (db, { params }) => {

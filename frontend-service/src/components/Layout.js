@@ -57,6 +57,11 @@ function AccountMenu() {
       {open && (
         <div role="menu" className="absolute right-0 mt-2 w-56 rounded-xl border border-sand-200 bg-white shadow-lg p-2 z-30">
           <p className="px-3 py-2 text-sm text-kopi-600">Signed in as @{username}</p>
+          {!isOrganizer && (
+            <Link role="menuitem" to="/interests" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg font-semibold text-kopi-900 hover:bg-sand-100">
+              Causes &amp; invitations
+            </Link>
+          )}
           <button role="menuitem" onClick={handleLogout} className="w-full text-left px-3 py-2 rounded-lg font-semibold text-kopi-900 hover:bg-sand-100">Log out</button>
         </div>
       )}

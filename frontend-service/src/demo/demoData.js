@@ -23,6 +23,10 @@ export const VOLUNTEER_NAMES = [
   'Vikram Das', 'Jasmine Low', 'Irfan Aziz', 'Hui Min Seah', 'Joel Fernandez',
 ];
 
+// Where each fictional volunteer likes to help (cycled), and causes picked by position in CATEGORIES.
+// Same as DemoEventSeeder's AREAS and CAUSES.
+export const AREAS = ['Tampines', 'Ang Mo Kio', 'Jurong West', 'Bedok', 'Toa Payoh', 'Woodlands', 'Sengkang', 'Queenstown', 'Pasir Ris', 'Bishan'];
+
 const GREEN_SG = ['Green Singapore Community', 'org'];
 const COASTLINE = ['Coastline Keepers', 'coastlinekeepers'];
 const TUTORS = ['Kampung Tutors', 'kampungtutors'];
