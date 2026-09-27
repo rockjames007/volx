@@ -15,14 +15,17 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -175,14 +178,33 @@ public class DemoEventSeeder implements CommandLineRunner {
         for (int i = 0; i < VOLUNTEER_NAMES.size(); i++) {
             String name = VOLUNTEER_NAMES.get(i);
             savePreference(usernameOf(name), name, AREAS.get(i % AREAS.size()),
-                    List.of(CAUSES.get(i % CAUSES.size()), CAUSES.get((i + 2) % CAUSES.size())), byName, now);
+                    List.of(CAUSES.get(i % CAUSES.size()), CAUSES.get((i + 2) % CAUSES.size())), availability(i), byName, now);
         }
-        savePreference(DEMO_VOLUNTEER, DEMO_VOLUNTEER_NAME, "Ang Mo Kio", List.of("Community", "Environment"), byName, now);
+        savePreference(DEMO_VOLUNTEER, DEMO_VOLUNTEER_NAME, "Ang Mo Kio", List.of("Community", "Environment"),
+                Set.of("SAT_MORNING", "SUN_MORNING", "WED_EVENING"), byName, now);
     }
 
-    private void savePreference(String username, String name, String area, List<String> causes,
+    // When the i-th fictional volunteer is usually free: mostly weekend mornings, some weekday evenings.
+    static Set<String> availability(int i) {
+        Set<String> slots = new HashSet<>();
+        if (i % 3 != 2) slots.add("SAT_MORNING");
+        if (i % 2 == 0) slots.add("SUN_MORNING");
+        if (i % 4 == 1) slots.add("SAT_AFTERNOON");
+        if (i % 5 == 0) slots.add("SUN_AFTERNOON");
+        if (i % 3 == 0) slots.add(List.of("TUE", "WED", "THU").get(i % 9 / 3) + "_EVENING");
+        if (i % 7 == 3) slots.add("FRI_EVENING");
+        return slots;
+    }
+
+    private void savePreference(String username, String name, String area, List<String> causes, Set<String> availability,
                                 Map<String, Category> byName, LocalDateTime now) {
-        if (preferences.existsById(username)) {
+        VolunteerPreference existing = preferences.findById(username).orElse(null);
+        if (existing != null) {
+            // Sample volunteers from before availability existed: add theirs once.
+            if (existing.getAvailability().isEmpty()) {
+                existing.setAvailability(new HashSet<>(availability));
+                preferences.save(existing);
+            }
             return;
         }
         VolunteerPreference preference = new VolunteerPreference();
@@ -191,13 +213,19 @@ public class DemoEventSeeder implements CommandLineRunner {
         preference.setArea(area);
         preference.setInterests(causes.stream().map(byName::get).filter(Objects::nonNull).map(Category::getId)
                 .collect(Collectors.toCollection(HashSet::new)));
+        preference.setAvailability(new HashSet<>(availability));
         preference.setDiscoverable(true);
         preference.setUpdatedDate(now);
         preferences.save(preference);
     }
 
     private static Event toEvent(Sample sample, Category category, LocalDateTime now) {
-        LocalDateTime from = LocalDate.now().plusDays(sample.day()).atTime(sample.start());
+        LocalDate day = LocalDate.now().plusDays(sample.day());
+        if (sample.day() < 0) {
+            // Past sample events were on Saturdays, like most volunteering.
+            day = day.with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY));
+        }
+        LocalDateTime from = day.atTime(sample.start());
         Event event = new Event();
         event.setName(sample.name());
         event.setDescription(sample.description());

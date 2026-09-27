@@ -1,10 +1,11 @@
 // A stand-in for the JoinTeer backend, used by the GitHub Pages demo (REACT_APP_DEMO=true). It answers the same
 // requests as the real API from sample data kept in this browser, following the same rules, so every screen works
 // without a server. Changes stay in this browser and the sample data starts afresh each day.
-import { AREAS, CATEGORIES, DEMO_ACCOUNTS, SAMPLES, VOLUNTEER_NAMES } from './demoData';
+import { AREAS, CATEGORIES, DEMO_ACCOUNTS, SAMPLES, VOLUNTEER_NAMES, availabilityOf } from './demoData';
+import { DAYS, PARTS } from '../lib/slots';
 
 const STORAGE_KEY = 'jointeer.demo';
-const VERSION = 2;
+const VERSION = 3;
 const HOUR = 60 * 60 * 1000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -34,6 +35,8 @@ export function seed(now = new Date()) {
   SAMPLES.forEach((sample, index) => {
     const [hour, minute] = sample.start.split(':').map(Number);
     const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() + sample.day, hour, minute);
+    // Past sample events were on Saturdays, like most volunteering (same as DemoEventSeeder).
+    if (sample.day < 0) from.setDate(from.getDate() - ((from.getDay() + 1) % 7));
     const to = new Date(from.getTime() + sample.hours * HOUR);
     const posted = new Date(Math.min(from.getTime() - 14 * 24 * HOUR, now.getTime() - 3 * 24 * HOUR));
     const id = index + 1;
@@ -79,13 +82,14 @@ export function seed(now = new Date()) {
 
   // The fictional volunteers (and the demo volunteer) have opted in to invitations, so organizers can find them.
   const preferences = {};
-  const prefer = (username, name, area, interests) => {
-    preferences[username] = { username, name, area, interests, discoverable: true, mutedOrganizers: [] };
+  const prefer = (username, name, area, interests, availability) => {
+    preferences[username] = { username, name, area, interests, availability, discoverable: true, mutedOrganizers: [] };
   };
   VOLUNTEER_NAMES.forEach((name, i) => {
-    prefer(usernameOf(name), name, AREAS[i % AREAS.length], [categories[i % 6].id, categories[(i + 2) % 6].id]);
+    prefer(usernameOf(name), name, AREAS[i % AREAS.length], [categories[i % 6].id, categories[(i + 2) % 6].id], availabilityOf(i));
   });
-  prefer('test', 'Test Volunteer', 'Ang Mo Kio', [categoryByName.Community.id, categoryByName.Environment.id]);
+  prefer('test', 'Test Volunteer', 'Ang Mo Kio', [categoryByName.Community.id, categoryByName.Environment.id],
+    ['SAT_MORNING', 'SUN_MORNING', 'WED_EVENING']);
 
   return {
     version: VERSION,
@@ -234,6 +238,16 @@ function applyDetails(db, event, body) {
 
 const sortByStart = (a, b) => parse(a.fromDate) - parse(b.fromDate);
 
+// Weekly time slots, Monday morning first (same order as the backend's TimeSlots.ALL).
+const ALL_SLOTS = DAYS.flatMap((day) => PARTS.map((part) => `${day.key}_${part.key}`));
+
+// The slot an event starting at this time falls in: morning before noon, afternoon until 5pm, evening after.
+const slotOf = (date) => {
+  const day = DAYS[(date.getDay() + 6) % 7].key;
+  const hour = date.getHours();
+  return `${day}_${hour < 12 ? 'MORNING' : hour < 17 ? 'AFTERNOON' : 'EVENING'}`;
+};
+
 const INVITES_PER_SPOT = 3;
 const MIN_INVITES = 10;
 const INVITES_WITHOUT_LIMIT = 50;
@@ -268,6 +282,7 @@ function preferencesDto(db, preference) {
   return {
     interests: [...(preference?.interests || [])].sort((a, b) => Number(a) - Number(b)),
     area: preference?.area || null,
+    availability: ALL_SLOTS.filter((slot) => (preference?.availability || []).includes(slot)),
     discoverable: Boolean(preference?.discoverable),
     mutedOrganizers: [...(preference?.mutedOrganizers || [])].sort().map((username) => ({ username, name: organizerName(username) })),
   };
@@ -478,6 +493,10 @@ const routes = [
       name: displayName(user),
       area: area || null,
       interests: [...new Set(body.interests.map(String).filter((id) => known.has(id)))],
+      // Optional, so leaving it out keeps what was saved.
+      availability: Array.isArray(body.availability)
+        ? [...new Set(body.availability.filter((slot) => ALL_SLOTS.includes(slot)))]
+        : (current.availability || []),
       discoverable: Boolean(body.discoverable),
       // Only ever unmute here; muting happens when declining an invitation.
       mutedOrganizers: Array.isArray(body.mutedOrganizers)
@@ -523,6 +542,33 @@ const routes = [
     matches.sort((a, b) => b.eventsWithYou - a.eventsWithYou || b.causeEvents - a.causeEvents
       || b.verifiedHours - a.verifiedHours || a.name.localeCompare(b.name));
     return matches.slice(0, 100);
+  }, true],
+
+  ['GET', /^\/profile\/planning\/best-times$/, (db, { user, query }) => {
+    if (user.role !== 'ORGANIZER') throw new ApiError(403, 'Only organizer accounts can plan events');
+    const categoryId = query.get('categoryId');
+    const wantedArea = (query.get('area') || '').trim().toLowerCase();
+    // Only opted-in volunteers count, and only totals are returned.
+    const matching = Object.values(db.preferences)
+      .filter((p) => p.discoverable && !p.mutedOrganizers.includes(user.username))
+      .filter((p) => !categoryId || p.interests.includes(categoryId))
+      .filter((p) => !wantedArea || (p.area || '').toLowerCase().includes(wantedArea));
+    const count = () => Object.fromEntries(ALL_SLOTS.map((slot) => [slot, 0]));
+    const available = count();
+    const turnout = count();
+    const yourTurnout = count();
+    matching.forEach((p) => (p.availability || []).forEach((slot) => { available[slot] += 1; }));
+    db.registrations.filter((r) => r.attended === true).forEach((r) => {
+      const event = requireEvent(db, r.eventId);
+      const slot = slotOf(parse(event.fromDate));
+      if (!categoryId || String(event.category?.id) === categoryId) turnout[slot] += 1;
+      if (event.createdBy === user.username) yourTurnout[slot] += 1;
+    });
+    return {
+      matchingVolunteers: matching.length,
+      withAvailability: matching.filter((p) => (p.availability || []).length > 0).length,
+      slots: ALL_SLOTS.map((slot) => ({ slot, available: available[slot], turnout: turnout[slot], yourTurnout: yourTurnout[slot] })),
+    };
   }, true],
 
   ['POST', /^\/profile\/events\/(\d+)\/invites$/, (db, { params, user, body }) => {

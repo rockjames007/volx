@@ -25,6 +25,11 @@ public class VolunteerPreference {
     @CollectionTable(name = "volunteer_interest", joinColumns = @JoinColumn(name = "username"))
     @Column(name = "category_id")
     private Set<Long> interests = new HashSet<>();
+    // When they're usually free, e.g. "SAT_MORNING" (see TimeSlots). Organizers only ever see totals.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "volunteer_availability", joinColumns = @JoinColumn(name = "username"))
+    @Column(name = "slot", length = 16)
+    private Set<String> availability = new HashSet<>();
     // Opted in to being found and invited by organizers.
     private boolean discoverable;
     // Organizers (by username) this volunteer doesn't want invitations from.

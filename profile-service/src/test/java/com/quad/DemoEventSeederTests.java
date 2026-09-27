@@ -102,6 +102,17 @@ class DemoEventSeederTests {
 	}
 
 	@Test
+	void sampleVolunteersShowWhenPeopleAreFree() throws Exception {
+		// Mostly weekend mornings; two sample volunteers haven't said when they're free.
+		perform(get("/profile/planning/best-times").header("Authorization", token("org", "ORGANIZER")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.matchingVolunteers", is(31)))
+				.andExpect(jsonPath("$.withAvailability", is(29)))
+				.andExpect(jsonPath("$.slots[15].slot", is("SAT_MORNING")))
+				.andExpect(jsonPath("$.slots[15].available", is(21)));
+	}
+
+	@Test
 	void runningAgainDoesNotDuplicate() throws Exception {
 		seeder.run();
 		perform(get("/profile/events?size=50")).andExpect(jsonPath("$.content", hasSize(12)));

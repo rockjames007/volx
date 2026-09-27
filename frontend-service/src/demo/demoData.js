@@ -27,6 +27,19 @@ export const VOLUNTEER_NAMES = [
 // Same as DemoEventSeeder's AREAS and CAUSES.
 export const AREAS = ['Tampines', 'Ang Mo Kio', 'Jurong West', 'Bedok', 'Toa Payoh', 'Woodlands', 'Sengkang', 'Queenstown', 'Pasir Ris', 'Bishan'];
 
+// When the i-th fictional volunteer is usually free: mostly weekend mornings, some weekday evenings.
+// Same as DemoEventSeeder.availability.
+export const availabilityOf = (i) => {
+  const slots = [];
+  if (i % 3 !== 2) slots.push('SAT_MORNING');
+  if (i % 2 === 0) slots.push('SUN_MORNING');
+  if (i % 4 === 1) slots.push('SAT_AFTERNOON');
+  if (i % 5 === 0) slots.push('SUN_AFTERNOON');
+  if (i % 3 === 0) slots.push(`${['TUE', 'WED', 'THU'][Math.floor((i % 9) / 3)]}_EVENING`);
+  if (i % 7 === 3) slots.push('FRI_EVENING');
+  return slots;
+};
+
 const GREEN_SG = ['Green Singapore Community', 'org'];
 const COASTLINE = ['Coastline Keepers', 'coastlinekeepers'];
 const TUTORS = ['Kampung Tutors', 'kampungtutors'];

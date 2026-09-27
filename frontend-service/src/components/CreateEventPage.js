@@ -3,7 +3,9 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { createEvent, getCategories, getEvent, getToken, updateEvent } from '../api';
 import { Megaphone } from '@phosphor-icons/react';
 import { useAuth } from '../lib/auth';
+import { nextOccurrence, slotLabel } from '../lib/slots';
 import { inputClass, labelClass } from './AuthShell';
+import BestTimes from './BestTimes';
 import Layout from './Layout';
 
 // "2030-01-05T09:00:00" -> "2030-01-05T09:00", the format datetime-local inputs use.
@@ -31,6 +33,7 @@ const CreateEventPage = () => {
   // When editing, the form only appears once the event has loaded, so nothing typed early gets overwritten.
   const [loaded, setLoaded] = useState(!editing);
   const [submitting, setSubmitting] = useState(false);
+  const [picked, setPicked] = useState('');
 
   useEffect(() => {
     if (!getToken() || !isOrganizer) return;
@@ -83,6 +86,14 @@ const CreateEventPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
+  };
+
+  // A time from "When are volunteers free?": the next such day, keeping the length already entered.
+  const handlePickTime = (slot) => {
+    const duration = form.fromDate && form.toDate ? (new Date(form.toDate) - new Date(form.fromDate)) / 60000 : 0;
+    const dates = nextOccurrence(slot, duration);
+    setForm({ ...form, ...dates });
+    setPicked(`Set to ${new Date(dates.fromDate).toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} (${slotLabel(slot)}). Adjust it if you need to.`);
   };
 
   const handleSubmit = async (e) => {
@@ -145,6 +156,10 @@ const CreateEventPage = () => {
             <label htmlFor="description" className={labelClass}>Description</label>
             <textarea id="description" placeholder="What will volunteers do? What should they bring?" name="description" value={form.description} onChange={handleChange} rows={4} maxLength={2000} className={inputClass} />
           </div>
+          <BestTimes categoryId={form.categoryId}
+                     causeName={categories.find((c) => String(c.id) === String(form.categoryId))?.category}
+                     onPick={handlePickTime} />
+          {picked && <p role="status" className="-mt-3 mb-4 text-sm font-semibold text-pandan-800">{picked}</p>}
           <div className="mb-4 grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="fromDate" className={labelClass}>Starts</label>
