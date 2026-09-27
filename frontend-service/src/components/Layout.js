@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { CalendarBlank, MagnifyingGlass, Plus, SealCheck } from '@phosphor-icons/react';
+import { isDemo } from '../api';
 import { useAuth } from '../lib/auth';
 
 // Text wordmark until the designed logo is ready: "Join" in Kopi, "Teer" in Sambal.
@@ -151,10 +152,24 @@ const Footer = () => (
   </footer>
 );
 
+// Shown on the GitHub Pages demo, which has sample data and no server.
+function DemoNotice() {
+  const { username } = useAuth();
+  return (
+    <div className="bg-kaya-100 text-kopi-900 text-sm print:hidden">
+      <p className="max-w-6xl mx-auto px-4 py-2">
+        <strong className="font-semibold">Demo site.</strong> The events and people are made up, and anything you do stays in this browser.
+        {!username && <> <Link to="/login" className="font-semibold text-sambal-800 underline underline-offset-2">Try a demo account</Link></>}
+      </p>
+    </div>
+  );
+}
+
 const Layout = ({ children }) => {
   const { username } = useAuth();
   return (
     <div className="min-h-screen flex flex-col">
+      {isDemo() && <DemoNotice />}
       <Header />
       <main className={`flex-1 ${username ? 'pb-20 md:pb-0' : ''}`}>{children}</main>
       <Footer />

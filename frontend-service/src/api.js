@@ -1,4 +1,8 @@
+import { demoRequest } from './demo/demoApi';
+
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9000';
+// The GitHub Pages demo runs without a backend: requests are answered in the browser from sample data.
+export const isDemo = () => process.env.REACT_APP_DEMO === 'true';
 const TOKEN_KEY = 'volx.token';
 const USER_KEY = 'volx.username';
 const PROFILE_KEY = 'volx.profile';
@@ -33,6 +37,15 @@ export const clearSession = () => {
 };
 
 async function request(path, { method = 'GET', body } = {}) {
+  if (isDemo()) {
+    try {
+      return await demoRequest(path, { method, body, token: getToken() });
+    } catch (e) {
+      if (e.status === 401 && getToken()) clearSession();
+      throw e;
+    }
+  }
+
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;

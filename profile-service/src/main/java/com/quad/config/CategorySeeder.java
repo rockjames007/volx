@@ -3,6 +3,7 @@ package com.quad.config;
 import com.quad.entity.Category;
 import com.quad.repository.CategoryJpaRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.List;
  * Gives a fresh database a starter set of event categories so organizers can create events straight away.
  */
 @Component
+@Order(1)
 public class CategorySeeder implements CommandLineRunner {
 
     private static final List<String[]> DEFAULT_CATEGORIES = List.of(

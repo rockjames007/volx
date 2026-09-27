@@ -572,3 +572,24 @@ describe('check-in, verified hours and certificates', () => {
     expect(screen.queryByRole('link', { name: 'My hours' })).not.toBeInTheDocument();
   });
 });
+
+describe('GitHub Pages demo (no backend)', () => {
+  const original = process.env.REACT_APP_DEMO;
+  afterEach(() => { process.env.REACT_APP_DEMO = original; });
+
+  test('shows the sample events and signs in with a demo account', async () => {
+    process.env.REACT_APP_DEMO = 'true';
+    localStorage.clear();
+    global.fetch = jest.fn();
+    window.history.pushState({}, '', '/');
+    render(<App />);
+
+    expect(await screen.findByText('Beach clean-up at Pasir Ris')).toBeInTheDocument();
+    expect(screen.getByText(/The events and people are made up/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('link', { name: 'Try a demo account' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Organizer/ }));
+    expect(await screen.findByText('Green Singapore Community')).toBeInTheDocument();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
