@@ -46,6 +46,8 @@ function mockApi(routes) {
 const callsTo = (method, prefix) =>
   fetch.mock.calls.filter(([url, options = {}]) => (options.method || 'GET') === method && url.includes(prefix));
 
+const NO_PREFERENCES = { interests: [], area: null, discoverable: false, mutedOrganizers: [] };
+
 const logIn = (username = 'test', role = 'VOLUNTEER', organizationName = null) => {
   localStorage.setItem('volx.token', 'token-123');
   localStorage.setItem('volx.username', username);
@@ -227,6 +229,8 @@ describe('accounts', () => {
       'GET /profile/categories': CATEGORIES,
       'GET /profile/events': { content: [] },
       'GET /profile/me/events': { joined: [], organizing: [] },
+      'GET /profile/me/preferences': NO_PREFERENCES,
+      'PUT /profile/me/preferences': (path, options) => json({ ...JSON.parse(options.body), mutedOrganizers: [] }),
     });
     visit('/register');
 
@@ -237,9 +241,13 @@ describe('accounts', () => {
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     fireEvent.click(await screen.findByRole('button', { name: /environment/i }));
-    fireEvent.click(screen.getByRole('button', { name: /show me events \(1\)/i }));
+    fireEvent.change(screen.getByLabelText(/where would you like to help/i), { target: { value: 'Tampines' } });
+    fireEvent.click(screen.getByLabelText(/let organizers invite me/i));
+    fireEvent.click(screen.getByRole('button', { name: /save and show me events/i }));
 
     expect(await screen.findByText('Hi New,')).toBeInTheDocument();
+    expect(JSON.parse(callsTo('PUT', '/profile/me/preferences')[0][1].body))
+      .toEqual({ interests: [1], area: 'Tampines', discoverable: true, mutedOrganizers: [] });
     expect(JSON.parse(localStorage.getItem('volx.interests.newbie'))).toEqual(['1']);
   });
 
@@ -570,6 +578,158 @@ describe('check-in, verified hours and certificates', () => {
     visit('/events/1');
     expect(await screen.findByRole('link', { name: /attendance & check-in qr/i })).toHaveAttribute('href', '/events/1/attendance');
     expect(screen.queryByRole('link', { name: 'My hours' })).not.toBeInTheDocument();
+  });
+});
+
+describe('finding and inviting volunteers', () => {
+  const match = (overrides) => ({
+    username: 'priya.nair', name: 'Priya N.', area: 'Tampines', interests: ['Environment'], verifiedHours: 12,
+    eventsAttended: 4, causeEvents: 3, eventsWithYou: 2, status: null, ...overrides,
+  });
+
+  test('organizers find volunteers for their event and invite them', async () => {
+    logInAsOrganizer();
+    mockApi({
+      'GET /profile/events/1': event({ id: 1 }),
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/volunteers/search': [
+        match(),
+        match({ username: 'marcus.lim', name: 'Marcus L.', area: 'Bedok', eventsWithYou: 0, causeEvents: 0, verifiedHours: 0, eventsAttended: 0 }),
+        match({ username: 'wei.tan', name: 'Wei T.', status: 'JOINED', eventsWithYou: 0, causeEvents: 0 }),
+      ],
+      'POST /profile/events/1/invites': { invited: 2, skipped: 0, remaining: 28 },
+    });
+    visit('/events/1/invite');
+
+    expect(await screen.findByText('Priya N.')).toBeInTheDocument();
+    // Filters start from the event's cause, anywhere in Singapore.
+    const search = callsTo('GET', '/profile/volunteers/search')[0][0];
+    expect(search).toContain('eventId=1');
+    expect(search).toContain('categoryId=1');
+    expect(search).not.toContain('area=');
+    expect(screen.getByText('Helped you 2 times')).toBeInTheDocument();
+    expect(screen.getByText('3 Environment events')).toBeInTheDocument();
+    expect(screen.getByText('New to volunteering on JoinTeer', { exact: false })).toBeInTheDocument();
+    // Already going: can't be invited again.
+    expect(screen.getByText('Going')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Wei T\./)).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Select all' }));
+    fireEvent.change(screen.getByLabelText(/add a note/i), { target: { value: 'Join us!' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send 2 invitations' }));
+
+    expect(await screen.findByText(/Sent 2 invitations\. You can invite 28 more/)).toBeInTheDocument();
+    expect(JSON.parse(callsTo('POST', '/profile/events/1/invites')[0][1].body))
+      .toEqual({ usernames: ['priya.nair', 'marcus.lim'], message: 'Join us!' });
+  });
+
+  test('experience and area filters narrow the search', async () => {
+    logInAsOrganizer();
+    mockApi({
+      'GET /profile/events/1': event({ id: 1 }),
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/volunteers/search': [],
+    });
+    visit('/events/1/invite');
+
+    expect(await screen.findByText(/No one matches yet/)).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/only people who've already done environment events/i));
+    await screen.findByText(/No one matches yet/);
+    fireEvent.change(screen.getByPlaceholderText(/^Anywhere/), { target: { value: 'Bedok' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+    await screen.findByText(/No one matches yet/);
+
+    const last = callsTo('GET', '/profile/volunteers/search').pop()[0];
+    expect(last).toContain('experienced=true');
+    expect(last).toContain('area=Bedok');
+  });
+
+  test("organizers get an invite link on their event; other people's events send them back", async () => {
+    logInAsOrganizer();
+    mockApi({
+      'GET /profile/events/1': event({ id: 1 }),
+      'GET /profile/events/2': event({ id: 2, createdBy: 'someone-else' }),
+      'GET /profile/events/1/volunteers': [],
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/me/events': { joined: [], organizing: [] },
+    });
+    visit('/events/1');
+    expect(await screen.findByRole('link', { name: 'Invite volunteers' })).toHaveAttribute('href', '/events/1/invite');
+
+    window.history.pushState({}, '', '/events/2/invite');
+    fireEvent.popState(window);
+    expect(await screen.findByRole('button', { name: /join as a volunteer/i })).toBeInTheDocument();
+  });
+
+  test('volunteers accept an invitation in one tap', async () => {
+    logIn();
+    const invite = { id: 7, event: event({ id: 3, name: 'Tree planting' }), organizerName: 'Green Singapore Community', message: "We'd love your help!" };
+    mockApi({
+      'GET /profile/me/events': { joined: [], organizing: [] },
+      'GET /profile/me/invites': [invite],
+      'POST /profile/me/invites/7/accept': event({ id: 3, name: 'Tree planting', volunteersJoined: 5 }),
+    });
+    visit('/me');
+
+    expect(await screen.findByText('Green Singapore Community invited you')).toBeInTheDocument();
+    expect(screen.getByText(/We'd love your help!/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: "I'm in" }));
+
+    expect(await screen.findByText("You're in for Tree planting. See you there.")).toBeInTheDocument();
+    expect(screen.queryByText('Green Singapore Community invited you')).not.toBeInTheDocument();
+    expect(callsTo('GET', '/profile/me/events').length).toBe(2);
+  });
+
+  test('volunteers can decline and stop invitations from that organizer', async () => {
+    logIn();
+    mockApi({
+      'GET /profile/me/events': { joined: [], organizing: [] },
+      'GET /profile/me/invites': [{ id: 7, event: event({ id: 3 }), organizerName: 'Green Singapore Community', message: null }],
+      'POST /profile/me/invites/7/decline': null,
+    });
+    visit('/me');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Not this time' }));
+    fireEvent.click(screen.getByLabelText("Don't send me invitations from Green Singapore Community"));
+    fireEvent.click(screen.getByRole('button', { name: 'Decline invitation' }));
+
+    expect(await screen.findByText(/Declined\./)).toBeInTheDocument();
+    expect(JSON.parse(callsTo('POST', '/profile/me/invites/7/decline')[0][1].body)).toEqual({ muteOrganizer: true });
+  });
+
+  test('the home page mentions pending invitations and uses causes saved to the account', async () => {
+    logIn();
+    mockApi({
+      'GET /profile/events': { content: [event(), event({ id: 2, name: 'Reading club', category: CATEGORIES[1] })] },
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/me/events': { joined: [], organizing: [] },
+      'GET /profile/me/preferences': { ...NO_PREFERENCES, interests: ['2'] },
+      'GET /profile/me/invites': [{ id: 7, event: event({ id: 3 }), organizerName: 'Green SG', message: null }],
+    });
+    visit('/');
+
+    expect(await screen.findByText('An organizer invited you to an event.')).toBeInTheDocument();
+    const picked = (await screen.findByRole('heading', { name: /picked for you/i })).closest('section');
+    expect(within(picked).getByText('Reading club')).toBeInTheDocument();
+  });
+
+  test('volunteers can allow a muted organizer again', async () => {
+    logIn();
+    mockApi({
+      'GET /profile/categories': CATEGORIES,
+      'GET /profile/me/preferences': { ...NO_PREFERENCES, discoverable: true, mutedOrganizers: [{ username: 'org', name: 'Green SG' }] },
+      'PUT /profile/me/preferences': (path, options) => json({ ...JSON.parse(options.body), mutedOrganizers: [] }),
+      'GET /profile/events': { content: [] },
+      'GET /profile/me/events': { joined: [], organizing: [] },
+      'GET /profile/me/invites': [],
+    });
+    visit('/interests');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Allow again' }));
+    expect(screen.getByLabelText(/let organizers invite me/i)).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: /save and show me events/i }));
+    await screen.findByText(/Hi Full,/);
+    expect(JSON.parse(callsTo('PUT', '/profile/me/preferences')[0][1].body).mutedOrganizers).toEqual([]);
   });
 });
 

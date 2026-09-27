@@ -82,3 +82,42 @@ test('sample dates are always relative to today', () => {
   const data = seed(new Date(2030, 0, 1, 12));
   expect(data.events.find((e) => e.name === 'Befriending seniors: kopi and a chat').fromDate).toBe('2030-01-03T15:00:00');
 });
+
+test('organizers find the sample volunteers and invitations can be accepted', async () => {
+  const organizer = as('demo.org');
+  const volunteer = as('demo.test');
+  const all = await organizer('/profile/volunteers/search');
+  expect(all).toHaveLength(31);
+  // People who've helped Green Singapore Community come first; nobody's contact details are shared.
+  expect(all[0].eventsWithYou).toBe(1);
+  expect(all[0].email).toBeUndefined();
+  expect(all.find((v) => v.username === 'test').name).toBe('Test V.');
+
+  const nearby = await organizer('/profile/volunteers/search?categoryId=5&area=tampines&experienced=true');
+  expect(nearby.every((v) => v.area === 'Tampines' && v.causeEvents > 0)).toBe(true);
+  await expect(volunteer('/profile/volunteers/search')).rejects.toThrow('Only organizer accounts can find volunteers');
+
+  // Emergency supply packing (event 10) is Green Singapore Community's and still upcoming.
+  const sent = await organizer('/profile/events/10/invites', { method: 'POST', body: { usernames: ['test', 'test', 'nobody'], message: 'Hope you can come!' } });
+  expect(sent).toEqual({ invited: 1, skipped: 1, remaining: 89 });
+  const [invite] = await volunteer('/profile/me/invites');
+  expect(invite).toMatchObject({ organizerName: 'Green Singapore Community', message: 'Hope you can come!' });
+  expect((await volunteer(`/profile/me/invites/${invite.id}/accept`, { method: 'POST' })).volunteersJoined).toBe(12);
+  expect(await volunteer('/profile/me/invites')).toEqual([]);
+  expect(await organizer('/profile/events/10/invites')).toEqual([expect.objectContaining({ username: 'test', status: 'JOINED' })]);
+});
+
+test('declining can mute an organizer, and preferences can allow them again', async () => {
+  const organizer = as('demo.org');
+  const volunteer = as('demo.test');
+  await organizer('/profile/events/10/invites', { method: 'POST', body: { usernames: ['test'] } });
+  const [invite] = await volunteer('/profile/me/invites');
+  await volunteer(`/profile/me/invites/${invite.id}/decline`, { method: 'POST', body: { muteOrganizer: true } });
+
+  expect((await organizer('/profile/volunteers/search')).some((v) => v.username === 'test')).toBe(false);
+  const preferences = await volunteer('/profile/me/preferences');
+  expect(preferences.mutedOrganizers).toEqual([{ username: 'org', name: 'Green Singapore Community' }]);
+
+  await volunteer('/profile/me/preferences', { method: 'PUT', body: { ...preferences, mutedOrganizers: [] } });
+  expect((await organizer('/profile/volunteers/search')).some((v) => v.username === 'test')).toBe(true);
+});

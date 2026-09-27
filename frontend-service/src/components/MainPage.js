@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getCategories, getEvents, getMyEvents } from '../api';
+import { getCategories, getEvents, getMyEvents, getMyInvites, getPreferences } from '../api';
 import { useAuth } from '../lib/auth';
 import { CauseIcon } from '../lib/categories';
 import { spotsLeft } from '../lib/format';
 import { getInterests } from '../lib/interests';
 import EventCard from './EventCard';
 import Icon from './Icon';
+import { InvitationsNotice } from './Invitations';
 import Layout from './Layout';
 
 const firstName = (name) => (name ? name.trim().split(/\s+/)[0] : null);
@@ -40,6 +41,8 @@ const MainPage = () => {
   const [search, setSearch] = useState('');
   const [cause, setCause] = useState(null);
   const [status, setStatus] = useState('loading');
+  const [interests, setInterests] = useState(() => getInterests(username));
+  const [inviteCount, setInviteCount] = useState(0);
 
   useEffect(() => {
     getEvents()
@@ -61,7 +64,16 @@ const MainPage = () => {
       .catch(() => {});
   }, [username]);
 
-  const interests = getInterests(username);
+  // Volunteers: causes saved to their account (falling back to ones picked in this browser), and invitations.
+  useEffect(() => {
+    setInterests(getInterests(username));
+    setInviteCount(0);
+    if (!username || isOrganizer) return;
+    getPreferences()
+      .then((preferences) => { if (preferences?.interests?.length) setInterests(preferences.interests); })
+      .catch(() => {});
+    getMyInvites().then((list) => setInviteCount((list || []).length)).catch(() => {});
+  }, [username, isOrganizer]);
   const recommended = useMemo(
     () => events.filter((event) => interests.includes(String(event.category?.id)) && !goingIds.has(event.id)
       && spotsLeft(event) !== 0).slice(0, 3),
@@ -111,6 +123,7 @@ const MainPage = () => {
 
       <div className="border-t border-sand-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
+          {inviteCount > 0 && !filtering && <InvitationsNotice count={inviteCount} />}
           {recommended.length > 0 && !filtering && (
             <section aria-labelledby="picked-heading">
               <div className="flex items-baseline justify-between gap-4 mb-5">

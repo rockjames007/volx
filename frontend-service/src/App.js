@@ -9,6 +9,7 @@ import CreateEventPage from './components/CreateEventPage';
 import EventDetailPage from './components/EventDetailPage';
 import MyEventsPage from './components/MyEventsPage';
 import AttendancePage from './components/AttendancePage';
+import InviteVolunteersPage from './components/InviteVolunteersPage';
 import CheckInPage from './components/CheckInPage';
 import MyHoursPage from './components/MyHoursPage';
 import CertificatePage from './components/CertificatePage';
@@ -28,6 +29,7 @@ function App() {
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/events/:id/edit" element={<CreateEventPage />} />
           <Route path="/events/:id/attendance" element={<AttendancePage />} />
+          <Route path="/events/:id/invite" element={<InviteVolunteersPage />} />
           <Route path="/check-in/:id" element={<CheckInPage />} />
           <Route path="/me" element={<MyEventsPage />} />
           <Route path="/me/hours" element={<MyHoursPage />} />

@@ -111,3 +111,31 @@ export const verifyCertificate = (code) => request(`/profile/verify/${encodeURIC
 
 // Absolute link to a page of this site, e.g. for QR codes (works under a sub-path like /jointeer).
 export const siteUrl = (path) => `${window.location.origin}${process.env.PUBLIC_URL || ''}${path}`;
+
+// A volunteer's causes, area and whether organizers may invite them.
+export const getPreferences = () => request('/profile/me/preferences');
+
+export const savePreferences = (preferences) => request('/profile/me/preferences', { method: 'PUT', body: preferences });
+
+// Organizers: volunteers who opted in to invitations, best matches first.
+export const findVolunteers = ({ eventId, categoryId, area, experienced } = {}) => {
+  const params = new URLSearchParams();
+  if (eventId) params.set('eventId', eventId);
+  if (categoryId) params.set('categoryId', categoryId);
+  if (area && area.trim()) params.set('area', area.trim());
+  if (experienced) params.set('experienced', 'true');
+  const query = params.toString();
+  return request(`/profile/volunteers/search${query ? `?${query}` : ''}`);
+};
+
+export const inviteVolunteers = (eventId, usernames, message) =>
+  request(`/profile/events/${eventId}/invites`, { method: 'POST', body: { usernames, message } });
+
+export const getInvites = (eventId) => request(`/profile/events/${eventId}/invites`);
+
+export const getMyInvites = () => request('/profile/me/invites');
+
+export const acceptInvite = (id) => request(`/profile/me/invites/${id}/accept`, { method: 'POST' });
+
+export const declineInvite = (id, muteOrganizer = false) =>
+  request(`/profile/me/invites/${id}/decline`, { method: 'POST', body: { muteOrganizer } });

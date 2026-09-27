@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { getMyEvents } from '../api';
+import { getMyEvents, getMyInvites } from '../api';
 import { useAuth } from '../lib/auth';
 import { hasEnded } from '../lib/format';
 import EventCard from './EventCard';
+import { InvitationList } from './Invitations';
 import Layout from './Layout';
 
 const TABS = [
@@ -16,11 +17,20 @@ const MyEventsPage = () => {
   const [mine, setMine] = useState(null);
   const [tab, setTab] = useState(isOrganizer ? 'organizing' : 'joined');
   const [error, setError] = useState('');
+  const [invites, setInvites] = useState([]);
+  const [answered, setAnswered] = useState('');
 
   useEffect(() => {
     if (!username) return;
     getMyEvents().then(setMine).catch((err) => setError(err.message));
-  }, [username]);
+    if (!isOrganizer) getMyInvites().then((list) => setInvites(list || [])).catch(() => {});
+  }, [username, isOrganizer]);
+
+  const handleAnswered = (invite, accepted) => {
+    setInvites((current) => current.filter((i) => i.id !== invite.id));
+    setAnswered(accepted ? `You're in for ${invite.event.name}. See you there.` : `Declined. ${invite.organizerName} will see you can't make it.`);
+    if (accepted) getMyEvents().then(setMine).catch(() => {});
+  };
 
   if (!username) {
     return <Navigate to="/login" replace state={{ from: '/me' }} />;
@@ -44,8 +54,10 @@ const MyEventsPage = () => {
               : `You've signed up for ${mine.joined.length} ${mine.joined.length === 1 ? 'event' : 'events'}.`}
           </p>
         )}
+        {answered && <p role="status" className="mt-4 rounded-xl bg-pandan-50 text-pandan-800 px-4 py-3 font-semibold">{answered}</p>}
+        <InvitationList invites={invites} onAnswered={handleAnswered} />
 
-        <div className="mt-6 border-b border-sand-200 flex gap-6" role="tablist">
+        <div className="mt-8 border-b border-sand-200 flex gap-6" role="tablist">
           {tabs.map((t) => (
             <button key={t.key} role="tab" aria-selected={current.key === t.key} onClick={() => setTab(t.key)}
                     className={`pb-3 -mb-px text-sm font-semibold border-b-2 ${current.key === t.key ? 'border-sambal-700 text-sambal-700' : 'border-transparent text-kopi-600 hover:text-kopi-900'}`}>

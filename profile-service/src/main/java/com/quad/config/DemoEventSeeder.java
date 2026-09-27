@@ -4,9 +4,11 @@ import com.quad.entity.Address;
 import com.quad.entity.Category;
 import com.quad.entity.Event;
 import com.quad.entity.EventRegistration;
+import com.quad.entity.VolunteerPreference;
 import com.quad.repository.CategoryJpaRepository;
 import com.quad.repository.EventJpaRepository;
 import com.quad.repository.EventRegistrationJpaRepository;
+import com.quad.repository.VolunteerPreferenceRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
@@ -17,8 +19,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,7 +31,8 @@ import java.util.stream.Collectors;
  * Fills an empty database with sample events around Singapore, so a demo shows a lively site straight away.
  * The organizations and volunteers are fictional. Dates are relative to startup, so the events are always upcoming,
  * and the README demo accounts get sign-ups and past hours of their own.
- * Only runs when there are no events yet. Disable with volx.demo-data.enabled=false.
+ * Only runs when there are no events yet (sample volunteers are also given invitation preferences if they're missing).
+ * Disable with volx.demo-data.enabled=false.
  * The GitHub Pages demo (frontend-service/src/demo/demoData.js) shows the same events; keep the two in step.
  */
 @Component
@@ -46,6 +51,12 @@ public class DemoEventSeeder implements CommandLineRunner {
             "Chloe Ng", "Hafiz Ismail", "Mei Ling Chua", "Arjun Pillai", "Rachel Teo", "Zul Hakim", "Sarah Lee",
             "Bryan Wong", "Divya Krishnan", "Amirul Hassan", "Grace Yeo", "Kenneth Chew", "Nadia Salleh",
             "Vikram Das", "Jasmine Low", "Irfan Aziz", "Hui Min Seah", "Joel Fernandez");
+
+    // Where each fictional volunteer likes to help (cycled), and the causes in the order interests are picked.
+    static final List<String> AREAS = List.of("Tampines", "Ang Mo Kio", "Jurong West", "Bedok", "Toa Payoh",
+            "Woodlands", "Sengkang", "Queenstown", "Pasir Ris", "Bishan");
+    static final List<String> CAUSES = List.of("Animals", "Community", "Disaster relief", "Education",
+            "Environment", "Health");
 
     /**
      * One sample event. {@code day} is days from today (negative = already happened); {@code joined} counts the
@@ -124,23 +135,29 @@ public class DemoEventSeeder implements CommandLineRunner {
     private final CategoryJpaRepository categories;
     private final EventJpaRepository events;
     private final EventRegistrationJpaRepository registrations;
+    private final VolunteerPreferenceRepository preferences;
 
     public DemoEventSeeder(CategoryJpaRepository categories, EventJpaRepository events,
-                           EventRegistrationJpaRepository registrations) {
+                           EventRegistrationJpaRepository registrations, VolunteerPreferenceRepository preferences) {
         this.categories = categories;
         this.events = events;
         this.registrations = registrations;
+        this.preferences = preferences;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
-        if (events.count() > 0) {
-            return;
-        }
         Map<String, Category> byName = categories.findAll().stream()
                 .collect(Collectors.toMap(Category::getCategory, Function.identity(), (a, b) -> a));
         LocalDateTime now = LocalDateTime.now();
+        if (events.count() > 0) {
+            // Sample events from an earlier version: give their volunteers preferences too, so they can be invited.
+            if (registrations.existsByUsername(usernameOf(VOLUNTEER_NAMES.get(0)))) {
+                addPreferences(byName, now);
+            }
+            return;
+        }
         for (int i = 0; i < SAMPLES.size(); i++) {
             Sample sample = SAMPLES.get(i);
             Category category = byName.get(sample.category());
@@ -150,6 +167,33 @@ public class DemoEventSeeder implements CommandLineRunner {
             Event event = events.save(toEvent(sample, category, now));
             addVolunteers(event, sample, i);
         }
+        addPreferences(byName, now);
+    }
+
+    // The fictional volunteers (and the demo volunteer) have opted in to invitations, so organizers can find them.
+    private void addPreferences(Map<String, Category> byName, LocalDateTime now) {
+        for (int i = 0; i < VOLUNTEER_NAMES.size(); i++) {
+            String name = VOLUNTEER_NAMES.get(i);
+            savePreference(usernameOf(name), name, AREAS.get(i % AREAS.size()),
+                    List.of(CAUSES.get(i % CAUSES.size()), CAUSES.get((i + 2) % CAUSES.size())), byName, now);
+        }
+        savePreference(DEMO_VOLUNTEER, DEMO_VOLUNTEER_NAME, "Ang Mo Kio", List.of("Community", "Environment"), byName, now);
+    }
+
+    private void savePreference(String username, String name, String area, List<String> causes,
+                                Map<String, Category> byName, LocalDateTime now) {
+        if (preferences.existsById(username)) {
+            return;
+        }
+        VolunteerPreference preference = new VolunteerPreference();
+        preference.setUsername(username);
+        preference.setName(name);
+        preference.setArea(area);
+        preference.setInterests(causes.stream().map(byName::get).filter(Objects::nonNull).map(Category::getId)
+                .collect(Collectors.toCollection(HashSet::new)));
+        preference.setDiscoverable(true);
+        preference.setUpdatedDate(now);
+        preferences.save(preference);
     }
 
     private static Event toEvent(Sample sample, Category category, LocalDateTime now) {

@@ -92,6 +92,16 @@ class DemoEventSeederTests {
 	}
 
 	@Test
+	void sampleVolunteersCanBeFoundAndInvited() throws Exception {
+		perform(get("/profile/volunteers/search").header("Authorization", token("org", "ORGANIZER")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(31)))
+				// Volunteers who've helped Green Singapore Community before come first.
+				.andExpect(jsonPath("$[0].eventsWithYou", is(1)))
+				.andExpect(jsonPath("$[*].name", hasItem("Test V.")));
+	}
+
+	@Test
 	void runningAgainDoesNotDuplicate() throws Exception {
 		seeder.run();
 		perform(get("/profile/events?size=50")).andExpect(jsonPath("$.content", hasSize(12)));
