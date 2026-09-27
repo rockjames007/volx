@@ -2,45 +2,38 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories, getEvents, getMyEvents } from '../api';
 import { useAuth } from '../lib/auth';
-import { categoryStyle } from '../lib/categories';
+import { CauseIcon } from '../lib/categories';
 import { spotsLeft } from '../lib/format';
 import { getInterests } from '../lib/interests';
 import EventCard from './EventCard';
 import Icon from './Icon';
 import Layout from './Layout';
 
-const STEPS = [
-  { title: 'Pick your causes', text: 'Tell us what you care about — the environment, education, health, animals and more.' },
-  { title: 'Join an event', text: 'Browse upcoming opportunities near you and join in one click. No paperwork.' },
-  { title: 'Show up and help', text: 'Meet the organizers and other volunteers, and make a real difference in your community.' },
-];
+const firstName = (name) => (name ? name.trim().split(/\s+/)[0] : null);
 
-const Stat = ({ value, label }) => (
-  <div>
-    <div className="text-3xl font-extrabold">{value}</div>
-    <div className="text-sm text-violet-100">{label}</div>
-  </div>
-);
-
-function CauseFilter({ categories, selected, onSelect }) {
+// "What do you care about?": one tap filters the list to a cause.
+function CausePicker({ categories, selected, onSelect }) {
   const chip = (active) =>
-    `inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition ${
-      active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'}`;
+    `inline-flex items-center gap-2 h-11 px-4 rounded-full border font-semibold transition ${
+      active ? 'bg-sambal-100 border-sambal-700 text-sambal-800' : 'bg-white border-sand-300 text-kopi-800 hover:border-kopi-600'}`;
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by cause">
-      <button className={chip(!selected)} aria-pressed={!selected} onClick={() => onSelect(null)}>All causes</button>
-      {categories.map((category) => (
-        <button key={category.id} className={chip(selected === String(category.id))}
-                aria-pressed={selected === String(category.id)} onClick={() => onSelect(String(category.id))}>
-          <span aria-hidden="true">{categoryStyle(category.category).emoji}</span>{category.category}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-2" role="group" aria-label="What do you care about?">
+      {categories.map((category) => {
+        const id = String(category.id);
+        const active = selected === id;
+        return (
+          <button key={id} className={chip(active)} aria-pressed={active} onClick={() => onSelect(active ? null : id)}>
+            <CauseIcon name={category.category} className="w-5 h-5" />
+            {category.category}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 const MainPage = () => {
-  const { username, isOrganizer } = useAuth();
+  const { username, isOrganizer, fullName } = useAuth();
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [goingIds, setGoingIds] = useState(new Set());
@@ -77,124 +70,109 @@ const MainPage = () => {
   );
 
   const query = search.trim().toLowerCase();
+  const filtering = Boolean(query || cause);
   const visibleEvents = events.filter((event) =>
     (!cause || String(event.category?.id) === cause)
     && (!query || [event.name, event.description, event.category?.category, event.address?.area, event.address?.pincode]
       .some((field) => field?.toLowerCase().includes(query))));
-
   const openSpots = events.reduce((sum, event) => sum + (spotsLeft(event) || 0), 0);
-  const causesActive = new Set(events.map((event) => event.category?.id)).size;
+  const name = firstName(fullName) || username;
 
   return (
     <Layout>
-      <section className="bg-gradient-to-br from-violet-700 via-violet-600 to-indigo-600 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-14 md:py-20">
-          <p className="text-violet-200 font-semibold mb-3">{username ? `Welcome back, ${username}` : 'Be a JoinTeer'}</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight max-w-2xl">Give your time where it matters most.</h1>
-          <p className="mt-4 text-lg text-violet-100 max-w-2xl">
-            JoinTeer connects volunteers with causes across Singapore — beach clean-ups, tutoring, blood drives,
-            befriending seniors. Find something that fits your interests and schedule, and join in one click.
-          </p>
-          <label className="mt-8 flex items-center gap-3 bg-white rounded-xl shadow-lg px-4 py-3 max-w-xl">
-            <Icon name="search" className="w-5 h-5 text-slate-400" />
+      <section className="max-w-6xl mx-auto px-4 pt-12 pb-10 md:pt-20 md:pb-14">
+        <p className="font-semibold text-sambal-700">{username ? `Hi ${name},` : 'Hello, neighbour.'}</p>
+        <h1 className="mt-2 text-4xl md:text-6xl font-semibold text-kopi-900 max-w-3xl leading-[1.08]">
+          Got a few hours{' '}
+          <span className="relative whitespace-nowrap">
+            this weekend?
+            {/* The brand's one hand-drawn motif: a Kaya underline under the key words. */}
+            <svg className="absolute left-0 -bottom-2 w-full h-3 text-kaya-400" viewBox="0 0 300 12" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M2 9 C 60 3, 140 2, 298 7" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+            </svg>
+          </span>
+        </h1>
+        <p className="mt-6 text-lg md:text-xl text-kopi-700 max-w-2xl">
+          Pick something good to do near you in Singapore. Join in one tap, and your hours are recorded for you.
+        </p>
+
+        <div className="mt-8 space-y-4">
+          <p className="font-semibold text-kopi-900">What do you care about?</p>
+          {categories.length > 0 && <CausePicker categories={categories} selected={cause} onSelect={setCause} />}
+          <label className="flex items-center gap-3 bg-white border border-sand-300 rounded-xl px-4 h-12 max-w-xl focus-within:border-sambal-700">
+            <Icon name="search" className="w-5 h-5 text-kopi-600" />
             <span className="sr-only">Search events</span>
             <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
-                   placeholder="Search by cause, place or event name"
-                   className="flex-1 text-slate-900 placeholder-slate-400 focus:outline-none" />
+                   placeholder="Or search a place, e.g. Tampines"
+                   className="flex-1 bg-transparent text-kopi-900 placeholder-kopi-600 focus:outline-none" />
           </label>
-          {status === 'ready' && (
-            <div className="mt-10 flex flex-wrap gap-x-12 gap-y-4">
-              <Stat value={events.length} label={events.length === 1 ? 'upcoming event' : 'upcoming events'} />
-              <Stat value={openSpots} label="volunteer spots open" />
-              <Stat value={causesActive} label={causesActive === 1 ? 'cause needs help' : 'causes need help'} />
-            </div>
-          )}
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
-        {username && interests.length === 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-violet-50 border border-violet-200 rounded-2xl p-5">
-            <p className="text-violet-900"><span className="font-semibold">Get better suggestions.</span> Tell us which causes you care about.</p>
-            <Link to="/interests" className="shrink-0 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg text-center">Choose causes</Link>
-          </div>
-        )}
-
-        {recommended.length > 0 && !query && !cause && (
-          <section aria-labelledby="picked-heading">
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 id="picked-heading" className="text-2xl font-bold">Picked for you</h2>
-              <Link to="/interests" className="text-sm text-violet-700 hover:underline">Edit your causes</Link>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {recommended.map((event) => <EventCard key={event.id} event={event} />)}
-            </div>
-          </section>
-        )}
-
-        <section aria-labelledby="upcoming-heading">
-          <h2 id="upcoming-heading" className="text-2xl font-bold mb-4">Upcoming opportunities</h2>
-          {categories.length > 0 && <div className="mb-6"><CauseFilter categories={categories} selected={cause} onSelect={setCause} /></div>}
-
-          {status === 'loading' && (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading events">
-              {[0, 1, 2].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-200 animate-pulse" />)}
-            </div>
+      <div className="border-t border-sand-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-10 space-y-12">
+          {recommended.length > 0 && !filtering && (
+            <section aria-labelledby="picked-heading">
+              <div className="flex items-baseline justify-between gap-4 mb-5">
+                <h2 id="picked-heading" className="text-2xl md:text-3xl font-semibold">Picked for you</h2>
+                <Link to="/interests" className="font-semibold text-sambal-700 hover:underline">Change your causes</Link>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {recommended.map((event) => <EventCard key={event.id} event={event} />)}
+              </div>
+            </section>
           )}
-          {status === 'error' && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
-              <p className="font-semibold">Couldn't load events right now.</p>
-              <p className="text-sm text-slate-500 mt-1">Please check your connection and try again. (Developers: is the API gateway running?)</p>
-            </div>
-          )}
-          {status === 'ready' && visibleEvents.length === 0 && (
-            <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
-              <div className="text-4xl mb-2" aria-hidden="true">🌍</div>
-              <p className="font-semibold">{query || cause ? 'No events match your search.' : 'No upcoming events yet.'}</p>
-              <p className="text-sm text-slate-500 mt-1">
-                {query || cause ? 'Try another cause or search term.' : 'Be the first to organize something good in your community.'}
-              </p>
-              {!query && !cause && isOrganizer && (
-                <Link to="/events/new" className="inline-block mt-4 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg">Post an event</Link>
+
+          <section aria-labelledby="upcoming-heading">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-5">
+              <h2 id="upcoming-heading" className="text-2xl md:text-3xl font-semibold">
+                {filtering ? 'Matching events' : 'Happening soon'}
+              </h2>
+              {status === 'ready' && events.length > 0 && !filtering && (
+                <p className="text-kopi-600">
+                  {events.length} {events.length === 1 ? 'event' : 'events'} · {openSpots} volunteer spots open
+                </p>
               )}
             </div>
+
+            {status === 'loading' && (
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading events">
+                {[0, 1, 2].map((i) => <div key={i} className="h-56 rounded-xl bg-sand-100 animate-pulse" />)}
+              </div>
+            )}
+            {status === 'error' && (
+              <div className="rounded-xl border border-sand-200 bg-rice-50 p-8 text-center">
+                <p className="font-semibold">We can't load events right now.</p>
+                <p className="text-kopi-600 mt-1">Please try again in a minute.</p>
+              </div>
+            )}
+            {status === 'ready' && visibleEvents.length === 0 && (
+              <div className="rounded-xl border border-dashed border-sand-300 bg-rice-50 p-10 text-center">
+                <p className="font-semibold">{filtering ? 'No events match that yet.' : 'No upcoming events yet.'}</p>
+                <p className="text-kopi-600 mt-1">
+                  {filtering ? 'Try another cause or place.' : 'New events are added every week, so check back soon.'}
+                </p>
+                {!filtering && isOrganizer && (
+                  <Link to="/events/new" className="inline-flex items-center mt-4 font-semibold text-white bg-sambal-700 hover:bg-sambal-800 px-4 h-11 rounded-xl">Post an event</Link>
+                )}
+              </div>
+            )}
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleEvents.map((event) => <EventCard key={event.id} event={event} going={goingIds.has(event.id)} />)}
+            </div>
+          </section>
+
+          {username && interests.length === 0 && !isOrganizer && (
+            <p className="text-kopi-700">
+              Want suggestions that fit you? <Link to="/interests" className="font-semibold text-sambal-700 hover:underline">Tell us what you care about</Link>.
+            </p>
           )}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleEvents.map((event) => <EventCard key={event.id} event={event} going={goingIds.has(event.id)} />)}
-          </div>
-        </section>
-
-        {!username && (
-          <section aria-labelledby="how-heading" className="bg-white border border-slate-200 rounded-3xl p-8 md:p-10">
-            <h2 id="how-heading" className="text-2xl font-bold mb-8 text-center">How JoinTeer works</h2>
-            <ol className="grid gap-8 md:grid-cols-3">
-              {STEPS.map((step, index) => (
-                <li key={step.title} className="text-center">
-                  <div className="w-10 h-10 mx-auto rounded-full bg-violet-100 text-violet-700 font-bold grid place-items-center mb-3">{index + 1}</div>
-                  <h3 className="font-semibold mb-1">{step.title}</h3>
-                  <p className="text-sm text-slate-600">{step.text}</p>
-                </li>
-              ))}
-            </ol>
-            <div className="text-center mt-8">
-              <Link to="/register" className="inline-block font-semibold text-white bg-violet-600 hover:bg-violet-700 px-6 py-3 rounded-xl">Become a JoinTeer</Link>
-            </div>
-          </section>
-        )}
-
-        {/* Organizers are invited to post; volunteers don't see a prompt they can't act on. */}
-        {(!username || isOrganizer) && (
-          <section className="rounded-3xl bg-slate-900 text-white p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-bold">Running a cause?</h2>
-              <p className="text-slate-300 mt-1">Post an event and reach volunteers who already care about it.</p>
-            </div>
-            <Link to={isOrganizer ? '/events/new' : '/register?type=organizer'}
-                  className="shrink-0 inline-flex items-center gap-2 font-semibold bg-white text-slate-900 hover:bg-violet-50 px-5 py-3 rounded-xl">
-              <Icon name="plus" className="w-4 h-4" /> {isOrganizer ? 'Post an event' : 'Sign up as an organizer'}
-            </Link>
-          </section>
-        )}
+          {!username && (
+            <p className="text-kopi-700">
+              Running a charity, school or community group? <Link to="/register?type=organizer" className="font-semibold text-sambal-700 hover:underline">Post your events on JoinTeer</Link>.
+            </p>
+          )}
+        </div>
       </div>
     </Layout>
   );

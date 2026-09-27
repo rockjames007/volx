@@ -36,31 +36,31 @@ const MyEventsPage = () => {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 py-10">
-        <h1 className="text-3xl font-extrabold tracking-tight">My events</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">My events</h1>
         {mine && (
-          <p className="text-slate-600 mt-1">
+          <p className="text-kopi-700 mt-1">
             {isOrganizer
               ? `You're organizing ${mine.organizing.length} ${mine.organizing.length === 1 ? 'event' : 'events'}.`
               : `You've signed up for ${mine.joined.length} ${mine.joined.length === 1 ? 'event' : 'events'}.`}
           </p>
         )}
 
-        <div className="mt-6 border-b border-slate-200 flex gap-6" role="tablist">
+        <div className="mt-6 border-b border-sand-200 flex gap-6" role="tablist">
           {tabs.map((t) => (
             <button key={t.key} role="tab" aria-selected={current.key === t.key} onClick={() => setTab(t.key)}
-                    className={`pb-3 -mb-px text-sm font-semibold border-b-2 ${current.key === t.key ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+                    className={`pb-3 -mb-px text-sm font-semibold border-b-2 ${current.key === t.key ? 'border-sambal-700 text-sambal-700' : 'border-transparent text-kopi-600 hover:text-kopi-900'}`}>
               {t.label}{mine ? ` (${mine[t.key].length})` : ''}
             </button>
           ))}
         </div>
 
         <div className="py-6" role="tabpanel">
-          {error && <p role="alert" className="text-red-600">{error}</p>}
-          {!mine && !error && <p className="text-slate-500">Loading…</p>}
+          {error && <p role="alert" className="text-chilli-700">{error}</p>}
+          {!mine && !error && <p className="text-kopi-600">Loading…</p>}
           {mine && events.length === 0 && (
-            <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
+            <div className="bg-white border border-dashed border-sand-300 rounded-xl p-10 text-center">
               <p className="font-semibold">{current.empty}</p>
-              <Link to={current.to} className="inline-block mt-4 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg">{current.cta}</Link>
+              <Link to={current.to} className="inline-block mt-4 text-sm font-semibold text-white bg-sambal-700 hover:bg-sambal-800 px-4 py-2 rounded-lg">{current.cta}</Link>
             </div>
           )}
           {upcoming.length > 0 && (
@@ -70,7 +70,7 @@ const MyEventsPage = () => {
           )}
           {past.length > 0 && (
             <>
-              <h2 className="text-lg font-bold mt-10 mb-4 text-slate-500">Past</h2>
+              <h2 className="text-lg font-bold mt-10 mb-4 text-kopi-600">Past</h2>
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 opacity-75">
                 {past.map((event) => <EventCard key={event.id} event={event} />)}
               </div>
