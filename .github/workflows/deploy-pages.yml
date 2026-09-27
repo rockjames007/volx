@@ -40,6 +40,8 @@ jobs:
           # Follows the repository name, so renaming the repository just works.
           PUBLIC_URL: /${{ github.event.repository.name }}
           REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          # Until a backend is hosted, the site runs as a demo with sample events answered in the browser.
+          REACT_APP_DEMO: ${{ vars.REACT_APP_API_URL == '' && 'true' || 'false' }}
       # GitHub Pages serves 404.html for unknown paths; making it the app lets
       # links like /<repository>/events/1 open directly.
       - run: cp build/index.html build/404.html

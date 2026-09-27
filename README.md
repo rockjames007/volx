@@ -119,7 +119,9 @@ org@gmail.com org123
 Volunteer:
 test@gmail.com test123
 
-**Demo Test Link:** https://rockjames007.github.io/jointeer/ (the website only; it shows a "couldn't load events" message unless it can reach a running backend)
+**Sample events:** on first startup with an empty database, the profile service also adds about a dozen sample events around Singapore from fictional organizations, with fictional volunteers signed up. The demo accounts get sign-ups of their own, and test@gmail.com has 12 verified hours from past events. Dates are relative to startup, so the events are always upcoming. Disable with `volx.demo-data.enabled=false` (`DEMO_EVENTS_ENABLED=false` in `.env`). To re-create them on an existing Docker setup, run `docker compose down -v` (this deletes all data) and start again.
+
+**Demo Test Link:** https://rockjames007.github.io/jointeer/ runs as a self-contained demo while no backend is hosted: the same sample events and demo accounts are answered in the browser (`frontend-service/src/demo/`), and anything you do stays in that browser. It switches to the real API once `REACT_APP_API_URL` is set (below). To try the demo locally: `REACT_APP_DEMO=true npm start` in `frontend-service`.
 
 **Publishing the demo:** every push to `main` builds `frontend-service` and publishes it to GitHub Pages via `.github/workflows/deploy-pages.yml`. The site path follows the repository name automatically. One-time setup: *Settings → Pages → Build and deployment → Source: GitHub Actions*. To point the published site at a hosted backend, set a repository variable `REACT_APP_API_URL` (*Settings → Secrets and variables → Actions → Variables*).
 

@@ -63,6 +63,8 @@ services:
     environment:
       <<: *service-env
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jointeer_profile
+      # Fills an empty database with sample events around Singapore; set to false for a real launch.
+      VOLX_DEMODATA_ENABLED: ${DEMO_EVENTS_ENABLED:-true}
 
   gateway:
     build: ./api-gateway
